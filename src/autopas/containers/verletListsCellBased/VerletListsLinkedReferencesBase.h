@@ -201,7 +201,7 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
     if (_verletParticleSortingConfig.enabled) {
       // Sorting physically reorders the global ParticleVector and then rebuilds
       // all ReferenceParticleCell pointer lists.
-      sortParticlesByConfiguredCellKey();
+      sortParticlesByConfiguredKey();
       // TODO: Remove this sanity check
       static bool printedSortingSanityCheck = false;
       if (not printedSortingSanityCheck) {
@@ -398,6 +398,76 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
   }
 
   /**
+   * Check that all configured block-size components are greater than zero.
+   *
+   * A zero block-size component would cause division by zero when converting
+   * cell coordinates to block coordinates.
+   */
+  void validateBlockSize() const {
+    for (size_t dim = 0; dim < 3; ++dim) {
+      if (_verletParticleSortingConfig.blockSize[dim] == 0) {
+        utils::ExceptionHandler::exception(
+            "VerletListsReferences block-level particle sorting requires positive block-size values. Got blockSize=[{}, {}, {}].",
+            _verletParticleSortingConfig.blockSize[0], _verletParticleSortingConfig.blockSize[1],
+            _verletParticleSortingConfig.blockSize[2]);
+      }
+    }
+  }
+
+  /**
+   * Compute integer ceil(numerator / denominator).
+   *
+   * This is used to compute how many blocks are required to cover a cell grid
+   * when the number of cells is not exactly divisible by the block size.
+   *
+   * @param numerator Value to divide.
+   * @param denominator Positive divisor.
+   * @return Ceiling of numerator / denominator.
+   */
+  [[nodiscard]] uint64_t ceilDiv(uint64_t numerator, uint64_t denominator) const {
+    return (numerator + denominator - 1) / denominator;
+  }
+
+  /**
+   * Map a particle position to the 3D block coordinate containing it.
+   *
+   * This is the coordinate-generation step for resolution == block.
+   * It first maps the particle position to a linked-cell coordinate and then
+   * groups several linked cells into one coarser block.
+   *
+   * @param position Particle position.
+   * @return Integer coordinate of the block containing the particle.
+   */
+  [[nodiscard]] SortingCoordinate getBlockCoordinateForPosition(const std::array<double, 3> &position) const {
+    validateBlockSize();
+
+    const auto cellCoord = getCellCoordinateForPosition(position);
+
+    return {cellCoord[0] / _verletParticleSortingConfig.blockSize[0],
+            cellCoord[1] / _verletParticleSortingConfig.blockSize[1],
+            cellCoord[2] / _verletParticleSortingConfig.blockSize[2]};
+  }
+
+  /**
+   * Get the block-grid dimensions.
+   *
+   * The block grid is derived from the linked-cell grid and the configured
+   * block size. If the cell grid is not exactly divisible by the block size,
+   * the last block in that dimension contains fewer cells.
+   *
+   * @return Number of blocks per dimension.
+   */
+  [[nodiscard]] SortingCoordinate getBlockGridSize() const {
+    validateBlockSize();
+
+    const auto cellGridSize = getCellGridSize();
+
+    return {ceilDiv(cellGridSize[0], _verletParticleSortingConfig.blockSize[0]),
+            ceilDiv(cellGridSize[1], _verletParticleSortingConfig.blockSize[1]),
+            ceilDiv(cellGridSize[2], _verletParticleSortingConfig.blockSize[2])};
+  }
+
+  /**
    * Encode a 3D coordinate using x-fastest row-major linear indexing.
    *
    * Formula:
@@ -559,21 +629,43 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
   /**
    * Compute the configured sorting key for one particle.
    *
-   * For this first implementation only cell resolution is supported.
-   * The order dimension is selected at runtime from the YAML config.
+   * The function first generates an integer coordinate according to the selected
+   * sorting resolution. It then encodes that coordinate with the selected
+   * sorting order.
+   *
+   * Currently supported resolutions:
+   *
+   * - cell:
+   *   particle position -> linked-cell coordinate
+   *
+   * - block:
+   *   particle position -> linked-cell coordinate -> block coordinate
+   *
+   * Particle-level resolution is intentionally not implemented yet.
    *
    * @param particle Particle for which a key should be generated.
    * @return Sorting key according to the current config.
    */
   [[nodiscard]] uint64_t sortingKeyForParticle(const Particle_T &particle) const {
-    if (_verletParticleSortingConfig.resolution != VerletParticleSortingResolution::cell) {
-      utils::ExceptionHandler::exception(
-          "VerletListsReferences particle sorting currently only supports resolution=cell. Requested resolution={}.",
-          to_string(_verletParticleSortingConfig.resolution));
-    }
+    SortingCoordinate coord{};
+    SortingCoordinate gridSize{};
 
-    const auto coord = getCellCoordinateForPosition(particle.getR());
-    const auto gridSize = getCellGridSize();
+    switch (_verletParticleSortingConfig.resolution) {
+      case VerletParticleSortingResolution::cell:
+        coord = getCellCoordinateForPosition(particle.getR());
+        gridSize = getCellGridSize();
+        break;
+
+      case VerletParticleSortingResolution::block:
+        coord = getBlockCoordinateForPosition(particle.getR());
+        gridSize = getBlockGridSize();
+        break;
+
+      case VerletParticleSortingResolution::particle:
+        utils::ExceptionHandler::exception(
+            "VerletListsReferences particle sorting currently does not support resolution=particle.");
+        break;
+    }
 
     switch (_verletParticleSortingConfig.order) {
       case VerletParticleSortingOrder::linear:
@@ -591,13 +683,12 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
   }
 
   /**
-   * Sort the global LinkedCellsReferences particle storage using the configured cell-level key.
+   * Sort the global LinkedCellsReferences particle storage using the configured key.
    *
-   * The primary key is the configured spatial key. Since cell-level sorting gives
-   * all particles in the same cell the same key, particle id is used as a final
-   * deterministic tie breaker.
+   * The primary key is generated from the configured resolution and order.
+   * Particle id is used as a deterministic final tie breaker.
    */
-  void sortParticlesByConfiguredCellKey() {
+  void sortParticlesByConfiguredKey() {
     _linkedCells.sortParticlesAndUpdateReferences([this](const Particle_T &a, const Particle_T &b) {
       const auto keyA = sortingKeyForParticle(a);
       const auto keyB = sortingKeyForParticle(b);
