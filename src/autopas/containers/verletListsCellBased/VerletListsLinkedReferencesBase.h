@@ -368,6 +368,23 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
   using SortingCoordinate = std::array<uint64_t, 3>;
 
   /**
+   * Number of bits per dimension for particle-level coordinate quantization.
+   *
+   * In 3D, 21 bits per dimension need 63 bits total for Morton/Hilbert-style
+   * keys. This fits into uint64_t while leaving one bit unused.
+   */
+  static constexpr uint64_t particleSortingBitsPerDimension = 21;
+
+  /**
+   * Number of integer grid points per dimension for particle-level sorting.
+   *
+   * The virtual particle-sorting grid is:
+   *
+   * 2^21 x 2^21 x 2^21
+   */
+  static constexpr uint64_t particleSortingGridExtent = uint64_t{1} << particleSortingBitsPerDimension;
+
+  /**
    * Map a particle position to the 3D linked-cell coordinate containing it.
    *
    * This is the coordinate-generation step for resolution == cell.
@@ -407,7 +424,8 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
     for (size_t dim = 0; dim < 3; ++dim) {
       if (_verletParticleSortingConfig.blockSize[dim] == 0) {
         utils::ExceptionHandler::exception(
-            "VerletListsReferences block-level particle sorting requires positive block-size values. Got blockSize=[{}, {}, {}].",
+            "VerletListsReferences block-level particle sorting requires positive block-size values. Got "
+            "blockSize=[{}, {}, {}].",
             _verletParticleSortingConfig.blockSize[0], _verletParticleSortingConfig.blockSize[1],
             _verletParticleSortingConfig.blockSize[2]);
       }
@@ -465,6 +483,59 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
     return {ceilDiv(cellGridSize[0], _verletParticleSortingConfig.blockSize[0]),
             ceilDiv(cellGridSize[1], _verletParticleSortingConfig.blockSize[1]),
             ceilDiv(cellGridSize[2], _verletParticleSortingConfig.blockSize[2])};
+  }
+
+  /**
+   * Get the virtual particle-level sorting grid dimensions.
+   *
+   * Particle-level sorting quantizes continuous particle positions into a
+   * power-of-two integer grid. The same grid is used for linear, Morton, and
+   * Hilbert order.
+   *
+   * @return Virtual grid dimensions for particle-level sorting.
+   */
+  [[nodiscard]] SortingCoordinate getParticleGridSize() const {
+    return {particleSortingGridExtent, particleSortingGridExtent, particleSortingGridExtent};
+  }
+
+  /**
+   * Quantize a particle position into the virtual particle-level sorting grid.
+   *
+   * This is the coordinate-generation step for resolution == particle.
+   *
+   * Each coordinate is mapped as:
+   *
+   * relative = (position - boxMin) / (boxMax - boxMin)
+   * clamped  = clamp(relative, 0, 1)
+   * coord    = floor(clamped * (gridExtent - 1))
+   *
+   * This produces integer coordinates in:
+   *
+   * [0, particleSortingGridExtent - 1]^3
+   *
+   * @param position Particle position.
+   * @return Quantized integer coordinate of the particle position.
+   */
+  [[nodiscard]] SortingCoordinate getParticleCoordinateForPosition(const std::array<double, 3> &position) const {
+    constexpr uint64_t maxCoordinate = particleSortingGridExtent - 1;
+
+    SortingCoordinate coord{};
+
+    for (size_t dim = 0; dim < 3; ++dim) {
+      const double boxLength = this->getBoxMax()[dim] - this->getBoxMin()[dim];
+
+      // Degenerate boxes should not occur in normal simulations, but if they do,
+      // place all particles at coordinate 0 in that dimension.
+      const double relativePosition = boxLength > 0. ? (position[dim] - this->getBoxMin()[dim]) / boxLength : 0.;
+
+      // Clamp to make the key generation robust for particles exactly on or
+      // slightly beyond the box boundary due to floating-point roundoff.
+      const double clampedRelativePosition = std::clamp(relativePosition, 0., 1.);
+
+      coord[dim] = static_cast<uint64_t>(clampedRelativePosition * static_cast<double>(maxCoordinate));
+    }
+
+    return coord;
   }
 
   /**
@@ -641,7 +712,8 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
    * - block:
    *   particle position -> linked-cell coordinate -> block coordinate
    *
-   * Particle-level resolution is intentionally not implemented yet.
+   * - particle:
+   *   particle position -> quantized integer coordinate
    *
    * @param particle Particle for which a key should be generated.
    * @return Sorting key according to the current config.
@@ -662,8 +734,8 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
         break;
 
       case VerletParticleSortingResolution::particle:
-        utils::ExceptionHandler::exception(
-            "VerletListsReferences particle sorting currently does not support resolution=particle.");
+        coord = getParticleCoordinateForPosition(particle.getR());
+        gridSize = getParticleGridSize();
         break;
     }
 
