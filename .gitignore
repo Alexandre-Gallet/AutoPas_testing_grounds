@@ -28,3 +28,9 @@ venv/
 *.csv
 *.out
 *.log
+
+# alexandre's personal notes
+Testing
+notes
+papers
+vtkOutputFolder
