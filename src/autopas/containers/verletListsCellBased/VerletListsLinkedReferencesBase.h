@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <cstdint>
+
+#include "algorithm"
 #include "autopas/containers/LeavingParticleCollector.h"
 #include "autopas/containers/ParticleContainerInterface.h"
 #include "autopas/containers/linkedCells/LinkedCellsReferences.h"
@@ -179,13 +182,36 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
   /**
    * @copydoc autopas::ParticleContainerInterface::updateContainer()
    * @note This function invalidates the neighbor lists.
+   *
+   * If global particle sorting is enabled, the underlying LinkedCellsReferences
+   * particle vector is sorted after the normal container update. Sorting happens
+   * only on full updates, i.e. when the Verlet lists are allowed to become invalid.
    */
   [[nodiscard]] std::vector<Particle_T> updateContainer(bool keepNeighborListsValid) override {
     if (keepNeighborListsValid) {
       return autopas::LeavingParticleCollector::collectParticlesAndMarkNonOwnedAsDummy(_linkedCells);
     }
+
     _neighborListIsValid.store(false, std::memory_order_relaxed);
-    return _linkedCells.updateContainer(false);
+
+    // First let LinkedCellsReferences handle particles that left the domain,
+    // dummy particles, halo particles, and normal reference maintenance.
+    auto leavingParticles = _linkedCells.updateContainer(false);
+
+    if (_verletParticleSortingConfig.enabled) {
+      // Sorting physically reorders the global ParticleVector and then rebuilds
+      // all ReferenceParticleCell pointer lists.
+      sortParticlesByConfiguredCellKey();
+      // TODO: Remove this sanity check
+      static bool printedSortingSanityCheck = false;
+      if (not printedSortingSanityCheck) {
+        printedSortingSanityCheck = true;
+        AutoPasLog(INFO, "VerletListsReferences global particle sorting executed: resolution={}, order={}",
+                   to_string(_verletParticleSortingConfig.resolution), to_string(_verletParticleSortingConfig.order));
+      }
+    }
+
+    return leavingParticles;
   }
 
   /**
@@ -330,6 +356,260 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
    * @copydoc autopas::ParticleContainerInterface::getInteractionLength()
    */
   [[nodiscard]] double getInteractionLength() const final { return _linkedCells.getInteractionLength(); }
+
+ private:
+  /**
+   * Integer coordinate used by the sorting-key encoders.
+   *
+   * For cell-level sorting this is the 3D linked-cell coordinate.
+   * Later, the same type can also represent block coordinates or quantized
+   * particle-position coordinates.
+   */
+  using SortingCoordinate = std::array<uint64_t, 3>;
+
+  /**
+   * Map a particle position to the 3D linked-cell coordinate containing it.
+   *
+   * This is the coordinate-generation step for resolution == cell.
+   *
+   * @param position Particle position.
+   * @return Integer coordinate of the linked cell containing the position.
+   */
+  [[nodiscard]] SortingCoordinate getCellCoordinateForPosition(const std::array<double, 3> &position) const {
+    const auto cellCoord = _linkedCells.getCellBlock().get3DIndexOfPosition(position);
+
+    return {static_cast<uint64_t>(cellCoord[0]), static_cast<uint64_t>(cellCoord[1]),
+            static_cast<uint64_t>(cellCoord[2])};
+  }
+
+  /**
+   * Get the linked-cell grid dimensions including halo cells.
+   *
+   * The returned dimensions define the finite grid in which cell-level sorting
+   * coordinates live.
+   *
+   * @return Number of cells per dimension including halo cells.
+   */
+  [[nodiscard]] SortingCoordinate getCellGridSize() const {
+    const auto &cellsPerDim = _linkedCells.getCellBlock().getCellsPerDimensionWithHalo();
+
+    return {static_cast<uint64_t>(cellsPerDim[0]), static_cast<uint64_t>(cellsPerDim[1]),
+            static_cast<uint64_t>(cellsPerDim[2])};
+  }
+
+  /**
+   * Encode a 3D coordinate using x-fastest row-major linear indexing.
+   *
+   * Formula:
+   *
+   * key = x + nx * (y + ny * z)
+   *
+   * @param coord 3D coordinate.
+   * @param gridSize Grid dimensions.
+   * @return Linear sorting key.
+   */
+  [[nodiscard]] uint64_t linearKey(const SortingCoordinate &coord, const SortingCoordinate &gridSize) const {
+    return coord[0] + gridSize[0] * (coord[1] + gridSize[1] * coord[2]);
+  }
+
+  /**
+   * Return the number of bits needed to represent values up to maxValue.
+   *
+   * Example:
+   * maxValue = 0 -> 1 bit
+   * maxValue = 1 -> 1 bit
+   * maxValue = 2 -> 2 bits
+   * maxValue = 7 -> 3 bits
+   *
+   * @param maxValue Largest value that must be representable.
+   * @return Number of bits required.
+   */
+  [[nodiscard]] unsigned int bitsNeeded(uint64_t maxValue) const {
+    unsigned int bits = 0;
+    do {
+      ++bits;
+      maxValue >>= 1;
+    } while (maxValue > 0);
+
+    return bits;
+  }
+
+  /**
+   * Return the number of bits needed for all coordinates in a grid.
+   *
+   * Morton and Hilbert encoders operate on a virtual power-of-two cube.
+   * If the real grid has dimensions [53, 31, 37], this function returns
+   * the number of bits needed for the largest coordinate, so the virtual
+   * encoding cube becomes 64 x 64 x 64.
+   *
+   * @param gridSize Real grid dimensions.
+   * @return Bits per dimension for the virtual encoding grid.
+   */
+  [[nodiscard]] unsigned int bitsNeededForGrid(const SortingCoordinate &gridSize) const {
+    const auto maxGridExtent = std::max({gridSize[0], gridSize[1], gridSize[2]});
+    return bitsNeeded(maxGridExtent - 1);
+  }
+
+  /**
+   * Encode a 3D coordinate using Morton/Z-order bit interleaving.
+   *
+   * The bits of x, y, and z are interleaved:
+   *
+   * x0 y0 z0 x1 y1 z1 ...
+   *
+   * @param coord 3D integer coordinate.
+   * @param bitsPerDimension Number of coordinate bits to encode per dimension.
+   * @return Morton sorting key.
+   */
+  [[nodiscard]] uint64_t mortonKey(const SortingCoordinate &coord, unsigned int bitsPerDimension) const {
+    uint64_t mortonIndex = 0;
+
+    for (uint64_t bit = 0; bit < bitsPerDimension; ++bit) {
+      // Place bit 'bit' of x into Morton bit 3 * bit.
+      mortonIndex |= ((coord[0] & (uint64_t{1} << bit)) << (2 * bit));
+
+      // Place bit 'bit' of y into Morton bit 3 * bit + 1.
+      mortonIndex |= ((coord[1] & (uint64_t{1} << bit)) << (2 * bit + 1));
+
+      // Place bit 'bit' of z into Morton bit 3 * bit + 2.
+      mortonIndex |= ((coord[2] & (uint64_t{1} << bit)) << (2 * bit + 2));
+    }
+
+    return mortonIndex;
+  }
+
+  /**
+   * Transform 3D integer coordinates into Hilbert transpose form.
+   *
+   * This is the coordinate transform used by John Skilling's Hilbert curve
+   * algorithm. The input coordinate is modified in-place. After this transform,
+   * the bits of the three coordinates can be read out to form a Hilbert index.
+   *
+   * @param coord Coordinate to transform in-place.
+   * @param bitsPerDimension Number of coordinate bits per dimension.
+   */
+  void hilbertAxesToTranspose(SortingCoordinate &coord, unsigned int bitsPerDimension) const {
+    if (bitsPerDimension == 0) {
+      return;
+    }
+
+    const uint64_t highestBit = uint64_t{1} << (bitsPerDimension - 1);
+
+    // Inverse undo step from Skilling's algorithm. This performs the rotations
+    // and reflections that make the Hilbert curve continuous across subcubes.
+    for (uint64_t q = highestBit; q > 1; q >>= 1) {
+      const uint64_t p = q - 1;
+
+      for (size_t dim = 0; dim < 3; ++dim) {
+        if ((coord[dim] & q) != 0) {
+          coord[0] ^= p;
+        } else {
+          const uint64_t t = (coord[0] ^ coord[dim]) & p;
+          coord[0] ^= t;
+          coord[dim] ^= t;
+        }
+      }
+    }
+
+    // Gray encode the coordinate axes.
+    for (size_t dim = 1; dim < 3; ++dim) {
+      coord[dim] ^= coord[dim - 1];
+    }
+
+    uint64_t t = 0;
+    for (uint64_t q = highestBit; q > 1; q >>= 1) {
+      if ((coord[2] & q) != 0) {
+        t ^= q - 1;
+      }
+    }
+
+    // Apply the final prefix transform to all dimensions.
+    for (size_t dim = 0; dim < 3; ++dim) {
+      coord[dim] ^= t;
+    }
+  }
+
+  /**
+   * Encode a 3D coordinate using Hilbert order.
+   *
+   * The real grid is embedded into a virtual power-of-two cube determined by
+   * bitsPerDimension. The returned key can be used for sorting particles along
+   * a 3D Hilbert curve.
+   *
+   * @param coord 3D integer coordinate.
+   * @param bitsPerDimension Number of coordinate bits to encode per dimension.
+   * @return Hilbert sorting key.
+   */
+  [[nodiscard]] uint64_t hilbertKey(SortingCoordinate coord, unsigned int bitsPerDimension) const {
+    hilbertAxesToTranspose(coord, bitsPerDimension);
+
+    uint64_t key = 0;
+
+    // Read the transformed coordinate bits from most significant to least
+    // significant. This packs the Hilbert transpose into one sortable integer.
+    for (int bit = static_cast<int>(bitsPerDimension) - 1; bit >= 0; --bit) {
+      for (size_t dim = 0; dim < 3; ++dim) {
+        key = (key << 1) | ((coord[dim] >> bit) & uint64_t{1});
+      }
+    }
+
+    return key;
+  }
+
+  /**
+   * Compute the configured sorting key for one particle.
+   *
+   * For this first implementation only cell resolution is supported.
+   * The order dimension is selected at runtime from the YAML config.
+   *
+   * @param particle Particle for which a key should be generated.
+   * @return Sorting key according to the current config.
+   */
+  [[nodiscard]] uint64_t sortingKeyForParticle(const Particle_T &particle) const {
+    if (_verletParticleSortingConfig.resolution != VerletParticleSortingResolution::cell) {
+      utils::ExceptionHandler::exception(
+          "VerletListsReferences particle sorting currently only supports resolution=cell. Requested resolution={}.",
+          to_string(_verletParticleSortingConfig.resolution));
+    }
+
+    const auto coord = getCellCoordinateForPosition(particle.getR());
+    const auto gridSize = getCellGridSize();
+
+    switch (_verletParticleSortingConfig.order) {
+      case VerletParticleSortingOrder::linear:
+        return linearKey(coord, gridSize);
+
+      case VerletParticleSortingOrder::morton:
+        return mortonKey(coord, bitsNeededForGrid(gridSize));
+
+      case VerletParticleSortingOrder::hilbert:
+        return hilbertKey(coord, bitsNeededForGrid(gridSize));
+    }
+
+    utils::ExceptionHandler::exception("Unknown Verlet particle sorting order.");
+    return 0;
+  }
+
+  /**
+   * Sort the global LinkedCellsReferences particle storage using the configured cell-level key.
+   *
+   * The primary key is the configured spatial key. Since cell-level sorting gives
+   * all particles in the same cell the same key, particle id is used as a final
+   * deterministic tie breaker.
+   */
+  void sortParticlesByConfiguredCellKey() {
+    _linkedCells.sortParticlesAndUpdateReferences([this](const Particle_T &a, const Particle_T &b) {
+      const auto keyA = sortingKeyForParticle(a);
+      const auto keyB = sortingKeyForParticle(b);
+
+      if (keyA != keyB) {
+        return keyA < keyB;
+      }
+
+      // Deterministic tiebreaker for particles with identical sorting keys.
+      return a.getID() < b.getID();
+    });
+  }
 
  protected:
   /// internal linked cells storage, handles Particle storage and used to build verlet lists

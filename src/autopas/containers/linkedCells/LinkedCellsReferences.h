@@ -174,6 +174,27 @@ class LinkedCellsReferences : public CellBasedParticleContainer<ReferenceParticl
     }
   }
 
+  /**
+   * Sort the global particle storage and rebuild all cell references.
+   *
+   * LinkedCellsReferences stores the actual particles in one global ParticleVector.
+   * The ReferenceParticleCell objects only store Particle_T pointers into this vector.
+   * Sorting the ParticleVector can invalidate these pointers, so the reference structure
+   * must be rebuilt immediately after sorting.
+   *
+   * @tparam Compare Comparator type.
+   * @param compare Comparator for Particle_T objects.
+   */
+  template <class Compare>
+  void sortParticlesAndUpdateReferences(Compare compare) {
+    _particleList.sortParticles(compare);
+
+    // sortParticles() marks the whole ParticleVector dirty with dirtyIndex = 0.
+    // updateDirtyParticleReferences() will therefore clear every cell and rebuild
+    // all Particle_T* references from the sorted global particle vector.
+    updateDirtyParticleReferences();
+  }
+
   void computeInteractions(TraversalInterface *traversal) override {
     // Check if traversal is allowed for this container and give it the data it needs.
     auto *traversalInterface = dynamic_cast<LCTraversalInterface *>(traversal);

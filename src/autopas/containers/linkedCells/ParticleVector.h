@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
 #include "autopas/utils/WrapOpenMP.h"
@@ -80,6 +81,29 @@ class ParticleVector {
     }
     _particleListImp.push_back(particle);
     _particleListLock.unlock();
+  }
+
+  /**
+   * Sort all particles in the underlying storage and mark all cell references as dirty.
+   *
+   * Sorting physically reorders the Particle_T objects inside the global particle vector.
+   * Since ReferenceParticleCell stores Particle_T pointers into this vector, all existing
+   * cell references must be considered invalid after this operation.
+   *
+   * Setting _dirtyIndex to 0 forces LinkedCellsReferences::updateDirtyParticleReferences()
+   * to clear and rebuild all cell reference lists.
+   *
+   * @tparam Compare Comparator type.
+   * @param compare Comparator for Particle_T objects.
+   */
+  template <class Compare>
+  void sortParticles(Compare compare) {
+    std::sort(_particleListImp.begin(), _particleListImp.end(), compare);
+
+    // Sorting can move particles to different addresses, so every existing pointer
+    // stored in ReferenceParticleCell has to be rebuilt.
+    _dirty = true;
+    _dirtyIndex = 0;
   }
 
   /**
