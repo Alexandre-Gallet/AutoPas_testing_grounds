@@ -9,6 +9,7 @@
 #include "autopas/containers/LeavingParticleCollector.h"
 #include "autopas/containers/ParticleContainerInterface.h"
 #include "autopas/containers/linkedCells/LinkedCells.h"
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "autopas/utils/ArrayMath.h"
 #include "autopas/utils/ParticleCellHelpers.h"
 #include "autopas/utils/markParticleAsDeleted.h"
@@ -50,7 +51,8 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
    * @param cellSizeFactor cell size factor relative to cutoff. Verlet lists are only implemented for values >= 1.0
    */
   VerletListsLinkedBase(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax, const double cutoff,
-                        const double skin, const double cellSizeFactor)
+                        const double skin, const double cellSizeFactor,
+                        const VerletParticleSortingConfig & /*verletParticleSortingConfig*/ = {})
       : ParticleContainerInterface<Particle_T>(skin),
         _linkedCells(boxMin, boxMax, cutoff, skin, std::max(1.0, cellSizeFactor)) {
     if (cellSizeFactor < 1.0) {

@@ -12,6 +12,7 @@
 #include "autopas/containers/linkedCells/traversals/LCC08Traversal.h"
 #include "autopas/containers/verletListsCellBased/VerletListsLinkedBase.h"
 #include "autopas/containers/verletListsCellBased/VerletListsLinkedReferencesBase.h"
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "autopas/containers/verletListsCellBased/verletLists/traversals/VLListIterationTraversal.h"
 #include "autopas/containers/verletListsCellBased/verletLists/traversals/VLTraversalInterface.h"
 #include "autopas/options/DataLayoutOption.h"
@@ -72,8 +73,9 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
    */
   VerletLists(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax, const double cutoff,
               const double skin, const BuildVerletListType buildVerletListType = BuildVerletListType::VerletSoA,
-              const double cellSizeFactor = 1.0)
-      : BackendType(boxMin, boxMax, cutoff, skin, cellSizeFactor), _buildVerletListType(buildVerletListType) {}
+              const double cellSizeFactor = 1.0, const VerletParticleSortingConfig &verletParticleSortingConfig = {})
+      : BackendType(boxMin, boxMax, cutoff, skin, cellSizeFactor, verletParticleSortingConfig),
+        _buildVerletListType(buildVerletListType) {}
 
   /**
    * @copydoc ParticleContainerInterface::getContainerType()

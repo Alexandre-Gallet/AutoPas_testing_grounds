@@ -10,6 +10,7 @@
 
 #include "autopas/LogicHandlerInfo.h"
 #include "autopas/containers/ParticleContainerInterface.h"
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "autopas/options//ExtrapolationMethodOption.h"
 #include "autopas/options/AcquisitionFunctionOption.h"
 #include "autopas/options/ContainerOption.h"
@@ -1145,6 +1146,19 @@ class AutoPas {
   void setSortingThreshold(size_t sortingThreshold) { _sortingThreshold = sortingThreshold; }
 
   /**
+   * Set global particle sorting config for VerletListsReferences.
+   * @param sortingConfig Sorting configuration.
+   */
+  void setVerletParticleSortingConfig(const VerletParticleSortingConfig &sortingConfig) {
+    _verletParticleSortingConfig = sortingConfig;
+  }
+
+  /**
+   * Get global particle sorting config for VerletListsReferences.
+   */
+  const VerletParticleSortingConfig &getVerletParticleSortingConfig() const { return _verletParticleSortingConfig; }
+
+  /**
    * Get the sorting-threshold for traversals that use the CellFunctor.
    * @return sorting-threshold
    */
@@ -1250,6 +1264,12 @@ class AutoPas {
    * Number of particles in two cells from which sorting should be performed for traversal that use the CellFunctor
    */
   size_t _sortingThreshold{8};
+
+  /**
+   * Sorting config controlling resolution level and sorting order
+   */
+  VerletParticleSortingConfig _verletParticleSortingConfig{};
+
   /**
    * Helper function to reduce code duplication for all forms of addParticle while minimizing overhead through loops.
    * Triggers reserve() and provides a parallel loop with deliberate scheduling.

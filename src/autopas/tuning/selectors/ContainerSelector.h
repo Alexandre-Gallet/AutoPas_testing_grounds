@@ -53,6 +53,7 @@ std::unique_ptr<ParticleContainerInterface<Particle_T>> ContainerSelector<Partic
   const auto &cellSizeFactor = containerInfo.cellSizeFactor;
   const auto &loadEstimator = containerInfo.loadEstimator;
   const auto &sortingThreshold = containerInfo.sortingThreshold;
+  const auto &verletParticleSortingConfig = containerInfo.verletParticleSortingConfig;
 
   std::unique_ptr<ParticleContainerInterface<Particle_T>> container;
   switch (containerChoice) {
@@ -80,7 +81,8 @@ std::unique_ptr<ParticleContainerInterface<Particle_T>> ContainerSelector<Partic
     case ContainerOption::verletListsReferences: {
       using ContainerType = VerletLists<Particle_T, VerletListsLinkedReferencesBase>;
       container = std::make_unique<ContainerType>(boxMin, boxMax, cutoff, verletSkin,
-                                                  ContainerType::BuildVerletListType::VerletSoA, cellSizeFactor);
+                                                  ContainerType::BuildVerletListType::VerletSoA, cellSizeFactor,
+                                                  verletParticleSortingConfig);
       break;
     }
     case ContainerOption::verletListsCells: {

@@ -9,6 +9,7 @@
 #include "autopas/containers/LeavingParticleCollector.h"
 #include "autopas/containers/ParticleContainerInterface.h"
 #include "autopas/containers/linkedCells/LinkedCellsReferences.h"
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "autopas/utils/ArrayMath.h"
 #include "autopas/utils/ParticleCellHelpers.h"
 #include "autopas/utils/markParticleAsDeleted.h"
@@ -50,9 +51,11 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
    * @param cellSizeFactor cell size factor relative to cutoff. Verlet lists are only implemented for values >= 1.0
    */
   VerletListsLinkedReferencesBase(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax,
-                                  const double cutoff, const double skin, const double cellSizeFactor)
+                                  const double cutoff, const double skin, const double cellSizeFactor,
+                                  const VerletParticleSortingConfig &verletParticleSortingConfig = {})
       : ParticleContainerInterface<Particle_T>(skin),
-        _linkedCells(boxMin, boxMax, cutoff, skin, std::max(1.0, cellSizeFactor)) {
+        _linkedCells(boxMin, boxMax, cutoff, skin, std::max(1.0, cellSizeFactor)),
+        _verletParticleSortingConfig(verletParticleSortingConfig) {
     if (cellSizeFactor < 1.0) {
       // Throw exception - this config should have been caught by LogicHandler. Note: This is not a fundamental issue
       // with the algorithm but simply has not been implemented.
@@ -61,6 +64,13 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
           "LogicHandler "
           "should reject this (as Configuration::hasCompatibleValues should return false).");
     }
+    // TODO: Remove this sanity check
+    AutoPasLog(
+        INFO,
+        "VerletListsReferences particle sorting config: enabled={}, resolution={}, order={}, blockSize=[{}, {}, {}]",
+        _verletParticleSortingConfig.enabled, to_string(_verletParticleSortingConfig.resolution),
+        to_string(_verletParticleSortingConfig.order), _verletParticleSortingConfig.blockSize[0],
+        _verletParticleSortingConfig.blockSize[1], _verletParticleSortingConfig.blockSize[2]);
   }
 
   void reserve(size_t numParticles, size_t numParticlesHaloEstimate) override {
@@ -330,6 +340,9 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
 
   /// specifies if the current verlet list was built for newton3
   bool _verletBuiltNewton3{false};
+
+  /// specifies sorting order and resolution
+  VerletParticleSortingConfig _verletParticleSortingConfig{};
 };
 
 }  // namespace autopas

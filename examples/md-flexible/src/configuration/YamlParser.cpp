@@ -331,6 +331,26 @@ bool MDFlexParser::YamlParser::parseYamlFile(MDFlexConfig &config) {
         description = config.sortingThreshold.description;
 
         config.sortingThreshold.value = node[key].as<size_t>();
+      } else if (key == config.verletParticleSortingEnabled.name) {
+        expected = "Boolean";
+        description = config.verletParticleSortingEnabled.description;
+        config.verletParticleSortingEnabled.value = node[key].as<bool>();
+
+      } else if (key == config.verletParticleSortingResolution.name) {
+        expected = "One of: block, cell, particle";
+        description = config.verletParticleSortingResolution.description;
+        config.verletParticleSortingResolution.value = node[key].as<std::string>();
+
+      } else if (key == config.verletParticleSortingOrder.name) {
+        expected = "One of: linear, morton, hilbert";
+        description = config.verletParticleSortingOrder.description;
+        config.verletParticleSortingOrder.value = node[key].as<std::string>();
+
+      } else if (key == config.verletParticleSortingBlockSize.name) {
+        expected = "YAML-sequence of three unsigned integers. Example: [4, 4, 4].";
+        description = config.verletParticleSortingBlockSize.description;
+        config.verletParticleSortingBlockSize.value = {
+            node[key][0].as<unsigned long>(), node[key][1].as<unsigned long>(), node[key][2].as<unsigned long>()};
       } else if (key == config.traversalOptions.name) {
         expected = "YAML-sequence of possible values.";
         description = config.traversalOptions.description;

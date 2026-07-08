@@ -237,6 +237,11 @@ std::string MDFlexConfig::to_string() const {
 #endif
   printOption(verletRebuildFrequency);
   printOption(verletSkinRadius);
+  printOption(verletParticleSortingEnabled);
+  printOption(verletParticleSortingResolution);
+  printOption(verletParticleSortingOrder);
+  printOption(verletParticleSortingBlockSize);
+
   const auto passedContainerOptionsStr = autopas::utils::ArrayUtils::to_string(containerOptions.value);
   if (passedContainerOptionsStr.find("luster") != std::string::npos) {
     printOption(verletClusterSize);

@@ -8,6 +8,7 @@
 #include <array>
 #include <memory>
 
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "autopas/options/LoadEstimatorOption.h"
 
 namespace autopas {
@@ -45,7 +46,8 @@ class ContainerSelectorInfo {
   explicit ContainerSelectorInfo(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax,
                                  double cutoff, double cellSizeFactor, double verletSkin,
                                  unsigned int verletClusterSize, size_t sortingThreshold,
-                                 LoadEstimatorOption loadEstimator)
+                                 LoadEstimatorOption loadEstimator,
+                                 VerletParticleSortingConfig verletParticleSortingConfig = {})
       : boxMin(boxMin),
         boxMax(boxMax),
         cutoff(cutoff),
@@ -53,7 +55,8 @@ class ContainerSelectorInfo {
         verletSkin(verletSkin),
         verletClusterSize(verletClusterSize),
         sortingThreshold(sortingThreshold),
-        loadEstimator(loadEstimator) {}
+        loadEstimator(loadEstimator),
+        verletParticleSortingConfig(verletParticleSortingConfig) {}
 
   /**
    * Equality between ContainerSelectorInfo
@@ -63,7 +66,7 @@ class ContainerSelectorInfo {
   bool operator==(const ContainerSelectorInfo &other) const {
     return cellSizeFactor == other.cellSizeFactor and verletSkin == other.verletSkin and
            verletClusterSize == other.verletClusterSize and sortingThreshold == other.sortingThreshold and
-           loadEstimator == other.loadEstimator;
+           loadEstimator == other.loadEstimator and verletParticleSortingConfig == other.verletParticleSortingConfig;
   }
 
   /**
@@ -122,6 +125,10 @@ class ContainerSelectorInfo {
    * Load estimator for balanced sliced traversals.
    */
   LoadEstimatorOption loadEstimator;
+  /**
+   * Sorting config for controlling sorting order and resolution
+   */
+  VerletParticleSortingConfig verletParticleSortingConfig{};
 };
 
 }  // namespace autopas

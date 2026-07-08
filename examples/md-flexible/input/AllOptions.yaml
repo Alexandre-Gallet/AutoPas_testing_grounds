@@ -1,5 +1,5 @@
 # This file contains all possible options that a yaml input file for md-flexible can have. For the meaning of individual options ./md-flexible --help can be called, or MDFlexConfig.h can be looked up.
-container                            :  [DirectSum, LinkedCells, LinkedCellsReferences, VarVerletListsAsBuild, VerletClusterLists, VerletLists, VerletListsCells, PairwiseVerletLists]
+container                            :  [DirectSum, LinkedCells, LinkedCellsReferences, VarVerletListsAsBuild, VerletClusterLists, VerletLists, VerletListsReferences, VerletListsCells, PairwiseVerletLists]
 # Configuration options for pairwise interactions
 functor                              :  Lennard-Jones (12-6) highway
 # Also available: "lj-AVX", "lj-SVE" (which implement architecture-specific vector instructions)
@@ -36,6 +36,20 @@ cell-size                            :  [1]
 deltaT                               :  0.000001
 pause-simulation-during-tuning       :  true
 sorting-threshold                    :  8
+# Global particle sorting for VerletListsReferences.
+# Currently only config plumbing; actual sorting behavior is implemented separately.
+verlet-particle-sorting-enabled      :  false
+# Spatial resolution used to build sorting keys.
+# Possible values: block, cell, particle
+verlet-particle-sorting-resolution   :  cell
+# Spatial ordering strategy used at the selected resolution.
+# Possible values: linear, morton, hilbert
+verlet-particle-sorting-order        :  linear
+# Number of linked cells per block in x, y, and z direction.
+# Only used if verlet-particle-sorting-resolution is block.
+# Must contain exactly 3 values
+verlet-particle-sorting-block-size   :  [4, 4, 4]
+
 tuning-phases                        :  0
 iterations                           :  10
 boundary-type                        :  [periodic, periodic, periodic]

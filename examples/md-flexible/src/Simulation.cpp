@@ -56,7 +56,7 @@ size_t getTerminalWidth() {
   // test all std pipes to get the current terminal width
   for (auto fd : {STDOUT_FILENO, STDIN_FILENO, STDERR_FILENO}) {
     if (isatty(fd)) {
-      struct winsize w {};
+      struct winsize w{};
       ioctl(fd, TIOCGWINSZ, &w);
       terminalWidth = w.ws_col;
       break;
@@ -191,6 +191,37 @@ Simulation::Simulation(const MDFlexConfig &configuration,
   _autoPasContainer->setSortingThreshold(_configuration.sortingThreshold.value);
   _autoPasContainer->setOutputSuffix(outputSuffix);
   autopas::Logger::get()->set_level(_configuration.logLevel.value);
+
+  // parse sorting config
+  auto parseResolution = [](const std::string &value) {
+    auto lower = value;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    if (lower == "block") return autopas::VerletParticleSortingResolution::block;
+    if (lower == "cell") return autopas::VerletParticleSortingResolution::cell;
+    if (lower == "particle") return autopas::VerletParticleSortingResolution::particle;
+
+    throw std::runtime_error("Unknown verlet particle sorting resolution: " + value);
+  };
+
+  auto parseOrder = [](const std::string &value) {
+    auto lower = value;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    if (lower == "linear") return autopas::VerletParticleSortingOrder::linear;
+    if (lower == "morton") return autopas::VerletParticleSortingOrder::morton;
+    if (lower == "hilbert") return autopas::VerletParticleSortingOrder::hilbert;
+
+    throw std::runtime_error("Unknown verlet particle sorting order: " + value);
+  };
+
+  autopas::VerletParticleSortingConfig sortingConfig{};
+  sortingConfig.enabled = _configuration.verletParticleSortingEnabled.value;
+  sortingConfig.resolution = parseResolution(_configuration.verletParticleSortingResolution.value);
+  sortingConfig.order = parseOrder(_configuration.verletParticleSortingOrder.value);
+  sortingConfig.blockSize = _configuration.verletParticleSortingBlockSize.value;
+
+  _autoPasContainer->setVerletParticleSortingConfig(sortingConfig);
 
   _autoPasContainer->init();
 

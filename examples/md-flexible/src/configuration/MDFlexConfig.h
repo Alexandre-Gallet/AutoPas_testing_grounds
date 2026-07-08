@@ -109,9 +109,7 @@ class MDFlexConfig {
      * @return
      */
     [[nodiscard]] auto toGetoptOption() const {
-      struct option retStruct {
-        name.c_str(), requiresArgument, nullptr, getOptChar
-      };
+      struct option retStruct{name.c_str(), requiresArgument, nullptr, getOptChar};
       return retStruct;
     }
   };
@@ -583,6 +581,19 @@ class MDFlexConfig {
       "Threshold for traversals that use the CellFunctor to start sorting. If the sum of the number of particles in "
       "two cells is greater or equal to that value, the CellFunctor creates a sorted view of the particles to avoid "
       "unnecessary distance checks."};
+
+  MDFlexOption<bool, __LINE__> verletParticleSortingEnabled{
+      false, "verlet-particle-sorting-enabled", true, "Enable global particle sorting for VerletListsReferences."};
+
+  MDFlexOption<std::string, __LINE__> verletParticleSortingResolution{
+      "cell", "verlet-particle-sorting-resolution", true,
+      "Resolution for global particle sorting: block, cell, particle."};
+
+  MDFlexOption<std::string, __LINE__> verletParticleSortingOrder{
+      "linear", "verlet-particle-sorting-order", true, "Order for global particle sorting: linear, morton, hilbert."};
+
+  MDFlexOption<std::array<unsigned long, 3>, __LINE__> verletParticleSortingBlockSize{
+      {4, 4, 4}, "verlet-particle-sorting-block-size", true, "Block size in cells for block-level particle sorting."};
 
   // Options for additional Object Generation on command line
   /**

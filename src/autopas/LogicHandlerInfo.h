@@ -7,6 +7,7 @@
 #pragma once
 
 #include "array"
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "string"
 
 namespace autopas {
@@ -44,5 +45,10 @@ class LogicHandlerInfo {
    * This is currently used in rebuild frequency estimation for dynamic containers.
    */
   double deltaT{0};
+
+  /**
+   * Global particle sorting configuration for VerletListsReferences.
+   */
+  VerletParticleSortingConfig verletParticleSortingConfig{};
 };
 }  // namespace autopas
