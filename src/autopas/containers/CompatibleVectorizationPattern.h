@@ -26,6 +26,7 @@ static std::set<autopas::VectorizationPatternOption> allCompatibleVectorizationP
     autopas::ContainerOption container) {
   switch (container) {
     case ContainerOption::verletLists:
+    case ContainerOption::verletListsReferences:
     case ContainerOption::verletListsCells:
     case ContainerOption::pairwiseVerletLists:
     case ContainerOption::varVerletListsAsBuild: {

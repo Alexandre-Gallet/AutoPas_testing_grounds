@@ -54,6 +54,10 @@ class ContainerOption : public Option<ContainerOption> {
      */
     verletLists,
     /**
+     * VerletLists using LinkedCellsReferences as backend storage.
+     */
+    verletListsReferences,
+    /**
      * VerletListsCells : Similar to VerletLists but Lists are associated with the underlying cells to achieve location
      * information. Parallelization options similar to LinkedCells.
      */
@@ -105,6 +109,7 @@ class ContainerOption : public Option<ContainerOption> {
         {ContainerOption::linkedCells, "LinkedCells"},
         {ContainerOption::linkedCellsReferences, "LinkedCellsReferences"},
         {ContainerOption::verletLists, "VerletLists"},
+        {ContainerOption::verletListsReferences, "VerletListsReferences"},
         {ContainerOption::verletListsCells, "VerletListsCells"},
         {ContainerOption::verletClusterLists, "VerletClusterLists"},
         {ContainerOption::varVerletListsAsBuild, "VarVerletListsAsBuild"},

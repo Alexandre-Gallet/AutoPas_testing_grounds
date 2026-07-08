@@ -11,6 +11,7 @@
 #include "autopas/containers/linkedCells/LinkedCells.h"
 #include "autopas/containers/linkedCells/traversals/LCC08Traversal.h"
 #include "autopas/containers/verletListsCellBased/VerletListsLinkedBase.h"
+#include "autopas/containers/verletListsCellBased/VerletListsLinkedReferencesBase.h"
 #include "autopas/containers/verletListsCellBased/verletLists/traversals/VLListIterationTraversal.h"
 #include "autopas/containers/verletListsCellBased/verletLists/traversals/VLTraversalInterface.h"
 #include "autopas/options/DataLayoutOption.h"
@@ -27,17 +28,22 @@ namespace autopas {
  * the interaction.
  * Cells are created using a cell size of at least cutoff + skin radius.
  * @tparam Particle_T
+ * @tparam LinkedCellsBackend_T backend used for linked-cells i.e. linkedcells vs linkedcells references
  */
-template <class Particle_T>
-class VerletLists : public VerletListsLinkedBase<Particle_T> {
+template <class Particle_T, template <class> class LinkedCellsBackend_T = VerletListsLinkedBase>
+class VerletLists : public LinkedCellsBackend_T<Particle_T> {
   /**
    * Type of the Particle.
    */
   using ParticleType = Particle_T;
   /**
-   * Type of the ParticleCell used by the underlying linked cells.
+   * Alias for linked cells backend type
    */
-  using ParticleCellType = FullParticleCell<Particle_T>;
+  using BackendType = LinkedCellsBackend_T<Particle_T>;
+  /**
+   * Type of the ParticleCell used by the underlying linked cells backend.
+   */
+  using ParticleCellType = typename BackendType::ParticleCellType;
 
  public:
   /**
@@ -67,15 +73,31 @@ class VerletLists : public VerletListsLinkedBase<Particle_T> {
   VerletLists(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax, const double cutoff,
               const double skin, const BuildVerletListType buildVerletListType = BuildVerletListType::VerletSoA,
               const double cellSizeFactor = 1.0)
-      : VerletListsLinkedBase<Particle_T>(boxMin, boxMax, cutoff, skin, cellSizeFactor),
-        _buildVerletListType(buildVerletListType) {}
+      : BackendType(boxMin, boxMax, cutoff, skin, cellSizeFactor), _buildVerletListType(buildVerletListType) {}
 
   /**
    * @copydoc ParticleContainerInterface::getContainerType()
    */
-  [[nodiscard]] ContainerOption getContainerType() const override { return ContainerOption::verletLists; }
+  [[nodiscard]] ContainerOption getContainerType() const override { return BackendType::containerOption; }
 
   void computeInteractions(TraversalInterface *traversal) override {
+    // TODO: Remove this sanity check
+    static bool printedTraversalCellType = false;
+    if (not printedTraversalCellType) {
+      printedTraversalCellType = true;
+
+      if constexpr (std::is_same_v<ParticleCellType, FullParticleCell<Particle_T>>) {
+        AutoPasLog(INFO, "VerletLists backend sanity: container={}, ParticleCellType=FullParticleCell",
+                   this->getContainerType().to_string());
+      } else if constexpr (std::is_same_v<ParticleCellType, ReferenceParticleCell<Particle_T>>) {
+        AutoPasLog(INFO, "VerletLists backend sanity: container={}, ParticleCellType=ReferenceParticleCell",
+                   this->getContainerType().to_string());
+      } else {
+        AutoPasLog(INFO, "VerletLists backend sanity: container={}, ParticleCellType=unknown",
+                   this->getContainerType().to_string());
+      }
+    }
+
     // Check if traversal is allowed for this container and give it the data it needs.
     auto *verletTraversalInterface = dynamic_cast<VLTraversalInterface<ParticleCellType> *>(traversal);
     if (verletTraversalInterface) {

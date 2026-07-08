@@ -11,6 +11,8 @@
 #include "autopas/containers/linkedCells/LinkedCellsReferences.h"
 #include "autopas/containers/octree/Octree.h"
 #include "autopas/containers/verletClusterLists/VerletClusterLists.h"
+#include "autopas/containers/verletListsCellBased/VerletListsLinkedBase.h"
+#include "autopas/containers/verletListsCellBased/VerletListsLinkedReferencesBase.h"
 #include "autopas/containers/verletListsCellBased/varVerletLists/VarVerletLists.h"
 #include "autopas/containers/verletListsCellBased/varVerletLists/neighborLists/asBuild/VerletNeighborListAsBuild.h"
 #include "autopas/containers/verletListsCellBased/verletLists/VerletLists.h"
@@ -70,8 +72,15 @@ std::unique_ptr<ParticleContainerInterface<Particle_T>> ContainerSelector<Partic
       break;
     }
     case ContainerOption::verletLists: {
-      container = std::make_unique<VerletLists<Particle_T>>(
-          boxMin, boxMax, cutoff, verletSkin, VerletLists<Particle_T>::BuildVerletListType::VerletSoA, cellSizeFactor);
+      using ContainerType = VerletLists<Particle_T, VerletListsLinkedBase>;
+      container = std::make_unique<ContainerType>(boxMin, boxMax, cutoff, verletSkin,
+                                                  ContainerType::BuildVerletListType::VerletSoA, cellSizeFactor);
+      break;
+    }
+    case ContainerOption::verletListsReferences: {
+      using ContainerType = VerletLists<Particle_T, VerletListsLinkedReferencesBase>;
+      container = std::make_unique<ContainerType>(boxMin, boxMax, cutoff, verletSkin,
+                                                  ContainerType::BuildVerletListType::VerletSoA, cellSizeFactor);
       break;
     }
     case ContainerOption::verletListsCells: {

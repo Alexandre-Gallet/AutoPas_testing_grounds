@@ -41,7 +41,9 @@ decltype(auto) withStaticContainerType(ParticleContainerInterface<Particle_T> &c
     case ContainerOption::linkedCellsReferences:
       return function(dynamic_cast<LinkedCellsReferences<Particle_T> &>(container));
     case ContainerOption::verletLists:
-      return function(dynamic_cast<VerletLists<Particle_T> &>(container));
+      return function(dynamic_cast<VerletLists<Particle_T, VerletListsLinkedBase> &>(container));
+    case ContainerOption::verletListsReferences:
+      return function(dynamic_cast<VerletLists<Particle_T, VerletListsLinkedReferencesBase> &>(container));
     case ContainerOption::verletListsCells:
       return function(dynamic_cast<VerletListsCells<Particle_T, VLCAllCellsNeighborList<Particle_T>> &>(container));
     case ContainerOption::verletClusterLists:

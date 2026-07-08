@@ -198,6 +198,9 @@ std::set<TraversalOption> filterAllOptions(const std::string &prefix, const Inte
         case ContainerOption::verletLists: {
           return allVLCompatibleTraversals();
         }
+        case ContainerOption::verletListsReferences: {
+          return allVLCompatibleTraversals();
+        }
         case ContainerOption::verletListsCells: {
           return allVLCCompatibleTraversals();
         }

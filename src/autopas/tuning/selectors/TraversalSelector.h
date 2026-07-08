@@ -439,6 +439,7 @@ std::unique_ptr<TraversalInterface> TraversalSelector::generateTraversalFromConf
     const Configuration &config, Functor_T &functor, const TraversalSelectorInfo &traversalInfo) {
   switch (config.container) {
     case ContainerOption::Value::linkedCellsReferences:
+    case ContainerOption::Value::verletListsReferences:
       return TraversalSelector::generateTraversal<ReferenceParticleCell<Particle_T>, Functor_T>(
           config.traversal, functor, traversalInfo, config.dataLayout, config.newton3);
     default:

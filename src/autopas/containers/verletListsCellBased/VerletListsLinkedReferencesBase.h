@@ -1,14 +1,14 @@
 /**
- * @file VerletListsLinkedBase.h
- * @author nguyen
- * @date 17.12.18
+ * @file VerletListsLinkedReferencesBase.h
+ * @author Alexandre Gallet
+ * @date 07.07.2026
  */
 
 #pragma once
 
 #include "autopas/containers/LeavingParticleCollector.h"
 #include "autopas/containers/ParticleContainerInterface.h"
-#include "autopas/containers/linkedCells/LinkedCells.h"
+#include "autopas/containers/linkedCells/LinkedCellsReferences.h"
 #include "autopas/utils/ArrayMath.h"
 #include "autopas/utils/ParticleCellHelpers.h"
 #include "autopas/utils/markParticleAsDeleted.h"
@@ -16,13 +16,13 @@
 namespace autopas {
 
 /**
- * Base class for Verlet lists which use an underlying linked cells container.
+ * Base class for Verlet lists which use an underlying linked cells References container.
  * Implementation have to use a constant cutoff radius of the interaction.
  * Cells are created using a cell size of at least cutoff + skin radius.
  * @tparam Particle_T
  */
 template <class Particle_T>
-class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
+class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Particle_T> {
  public:
   /**
    * Type of the Particle.
@@ -32,15 +32,15 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
   /**
    * Type of the ParticleCell used by the underlying linked cells.
    */
-  using ParticleCellType = typename LinkedCells<Particle_T>::ParticleCellType;
+  using ParticleCellType = typename LinkedCellsReferences<Particle_T>::ParticleCellType;
 
   /**
    * ContainerOption used to differentiate VerletLists using LinkedCells vs VerletLists using LinkedCellsReferences
    */
-  static constexpr ContainerOption containerOption = ContainerOption::verletLists;
+  static constexpr ContainerOption containerOption = ContainerOption::verletListsReferences;
 
   /**
-   * Constructor of the VerletListsLinkedBase class.
+   * Constructor of the VerletListsLinkedBaseReferences class.
    * The neighbor lists are build using a search radius of cutoff + skin.LinkedParticleCell::Particle_T
    * *rebuildFrequency
    * @param boxMin the lower corner of the domain
@@ -49,15 +49,16 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
    * @param skin   the skin radius
    * @param cellSizeFactor cell size factor relative to cutoff. Verlet lists are only implemented for values >= 1.0
    */
-  VerletListsLinkedBase(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax, const double cutoff,
-                        const double skin, const double cellSizeFactor)
+  VerletListsLinkedReferencesBase(const std::array<double, 3> &boxMin, const std::array<double, 3> &boxMax,
+                                  const double cutoff, const double skin, const double cellSizeFactor)
       : ParticleContainerInterface<Particle_T>(skin),
         _linkedCells(boxMin, boxMax, cutoff, skin, std::max(1.0, cellSizeFactor)) {
     if (cellSizeFactor < 1.0) {
       // Throw exception - this config should have been caught by LogicHandler. Note: This is not a fundamental issue
       // with the algorithm but simply has not been implemented.
       utils::ExceptionHandler::exception(
-          "Trying to construct a VerletListsLinkedBase with CSF < 1.0! This should never occur as the LogicHandler "
+          "Trying to construct a VerletListsLinkedReferencesBase with CSF < 1.0! This should never occur as the "
+          "LogicHandler "
           "should reject this (as Configuration::hasCompatibleValues should return false).");
     }
   }
@@ -220,7 +221,7 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
   }
 
   /**
-   * @copydoc autopas::LinkedCells::forEach()
+   * @copydoc autopas::LinkedCellsReferences::forEach()
    */
   template <typename Lambda>
   void forEach(Lambda forEachLambda, IteratorBehavior behavior) {
@@ -228,7 +229,7 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
   }
 
   /**
-   * @copydoc autopas::LinkedCells::reduce()
+   * @copydoc autopas::LinkedCellsReferences::reduce()
    */
   template <typename Lambda, typename A>
   void reduce(Lambda reduceLambda, A &result, IteratorBehavior behavior) {
@@ -256,7 +257,7 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
   }
 
   /**
-   * @copydoc autopas::LinkedCells::forEachInRegion()
+   * @copydoc autopas::LinkedCellsReferences::forEachInRegion()
    */
   template <typename Lambda>
   void forEachInRegion(Lambda forEachLambda, const std::array<double, 3> &lowerCorner,
@@ -265,7 +266,7 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
   }
 
   /**
-   * @copydoc autopas::LinkedCells::reduceInRegion()
+   * @copydoc autopas::LinkedCellsReferences::reduceInRegion()
    */
   template <typename Lambda, typename A>
   void reduceInRegion(Lambda reduceLambda, A &result, const std::array<double, 3> &lowerCorner,
@@ -322,7 +323,7 @@ class VerletListsLinkedBase : public ParticleContainerInterface<Particle_T> {
 
  protected:
   /// internal linked cells storage, handles Particle storage and used to build verlet lists
-  LinkedCells<Particle_T> _linkedCells;
+  LinkedCellsReferences<Particle_T> _linkedCells;
 
   /// specifies if the neighbor list is currently valid
   std::atomic<bool> _neighborListIsValid{false};
