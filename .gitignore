@@ -39,3 +39,10 @@ vtkOutputFolder
 # Keep them locally for reopening in VTune, but commit exported CSV reports instead.
 benchmarks/**/vtune_hotspots/result/
 benchmarks/**/vtune_memory/result/
+
+# Local Python virtual environment for benchmark analysis scripts.
+.venv-benchmarks/
+
+# Python bytecode generated when running benchmark helper scripts.
+__pycache__/
+*.py[cod]
