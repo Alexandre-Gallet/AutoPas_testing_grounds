@@ -195,6 +195,25 @@ class LinkedCellsReferences : public CellBasedParticleContainer<ReferenceParticl
     updateDirtyParticleReferences();
   }
 
+  /**
+   * Iterate over particles in the physical order of the global ParticleVector.
+   *
+   * LinkedCellsReferences stores particles in one global ParticleVector and cells
+   * only store Particle_T* references into that vector. This function exposes the
+   * global storage order without exposing the ParticleVector itself.
+   *
+   * This is required for code paths where the order of particles is semantically
+   * important, e.g. building a SoA buffer that follows the globally sorted particle
+   * order.
+   *
+   * @tparam Lambda Callable type accepting Particle_T&.
+   * @param forEachLambda Function executed for every particle in storage order.
+   */
+  template <typename Lambda>
+  void forEachParticleInStorageOrder(Lambda forEachLambda) {
+    _particleList.forEachInStorageOrder(forEachLambda);
+  }
+
   void computeInteractions(TraversalInterface *traversal) override {
     // Check if traversal is allowed for this container and give it the data it needs.
     auto *traversalInterface = dynamic_cast<LCTraversalInterface *>(traversal);

@@ -83,28 +83,12 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
   [[nodiscard]] ContainerOption getContainerType() const override { return BackendType::containerOption; }
 
   void computeInteractions(TraversalInterface *traversal) override {
-    // TODO: Remove this sanity check
-    static bool printedTraversalCellType = false;
-    if (not printedTraversalCellType) {
-      printedTraversalCellType = true;
-
-      if constexpr (std::is_same_v<ParticleCellType, FullParticleCell<Particle_T>>) {
-        AutoPasLog(INFO, "VerletLists backend sanity: container={}, ParticleCellType=FullParticleCell",
-                   this->getContainerType().to_string());
-      } else if constexpr (std::is_same_v<ParticleCellType, ReferenceParticleCell<Particle_T>>) {
-        AutoPasLog(INFO, "VerletLists backend sanity: container={}, ParticleCellType=ReferenceParticleCell",
-                   this->getContainerType().to_string());
-      } else {
-        AutoPasLog(INFO, "VerletLists backend sanity: container={}, ParticleCellType=unknown",
-                   this->getContainerType().to_string());
-      }
-    }
-
     // Check if traversal is allowed for this container and give it the data it needs.
     auto *verletTraversalInterface = dynamic_cast<VLTraversalInterface<ParticleCellType> *>(traversal);
     if (verletTraversalInterface) {
       verletTraversalInterface->setCellsAndNeighborLists(this->_linkedCells.getCells(), _aosNeighborLists,
-                                                         _soaNeighborLists);
+                                                         _soaNeighborLists, &_soaParticleOrder);
+
     } else {
       utils::ExceptionHandler::exception("trying to use a traversal of wrong type in VerletLists::computeInteractions");
     }
@@ -138,6 +122,30 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
   }
 
  protected:
+  /**
+   * True if this VerletLists instantiation uses ReferenceParticleCell.
+   *
+   * The sorted global SoA order only makes sense for the LinkedCellsReferences
+   * backend, because only that backend stores particles in one global
+   * ParticleVector. Normal LinkedCells stores particles inside individual cells.
+   */
+  static constexpr bool usesReferenceParticleCells =
+      std::is_same_v<ParticleCellType, ReferenceParticleCell<Particle_T>>;
+
+  /**
+   * True if this container should build an explicit sorted SoA particle order.
+   *
+   * For now this only describes the intended path. The order is generated in this
+   * step but not used for SoA loading or SoA neighbor-list conversion yet.
+   */
+  [[nodiscard]] bool shouldUseSortedSoAParticleOrder() const {
+    if constexpr (usesReferenceParticleCells) {
+      return this->_verletParticleSortingConfig.enabled;
+    } else {
+      return false;
+    }
+  }
+
   /**
    * Update the verlet lists for AoS usage
    * @param useNewton3
@@ -185,32 +193,95 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
   }
 
   /**
+   * Build the explicit particle order that should define SoA indices.
+   *
+   * For the references backend, this order follows the physical storage order of
+   * the global ParticleVector. After global particle sorting, this is the sorted
+   * particle order.
+   *
+   * This helper only prepares the order. It does not yet change how _soa is
+   * loaded or how _soaNeighborLists are generated.
+   */
+  void generateSoAParticleOrderFromStorageOrder() {
+    _soaParticleOrder.clear();
+
+    if constexpr (usesReferenceParticleCells) {
+      if (shouldUseSortedSoAParticleOrder()) {
+        _soaParticleOrder.reserve(_aosNeighborLists.size());
+
+        this->forEachParticleInStorageOrder([this](Particle_T &particle) {
+          // Store the address of the particle in the sorted global ParticleVector.
+          // Later, the vector index will become the SoA index of this particle.
+          _soaParticleOrder.push_back(&particle);
+        });
+      }
+    }
+  }
+
+  /**
    * Fills SoA neighbor list with particle indices.
    */
   void generateSoAListFromAoSVerletLists() {
+    // Prepare the explicit sorted SoA particle order if this is the references
+    // backend and particle sorting is enabled.
+    generateSoAParticleOrderFromStorageOrder();
+
     // resize the list to the size of the aos neighborlist
     _soaNeighborLists.resize(_aosNeighborLists.size());
     // clear the aos 2 soa map
     _particlePtr2indexMap.clear();
 
     _particlePtr2indexMap.reserve(_aosNeighborLists.size());
-    size_t index = 0;
 
-    // Here we have to iterate over all particles, as particles might be later on marked for deletion, and we cannot
-    // differentiate them from particles already marked for deletion.
-    for (auto iter = this->begin(IteratorBehavior::ownedOrHaloOrDummy); iter.isValid(); ++iter, ++index) {
-      // set the map
-      _particlePtr2indexMap[&(*iter)] = index;
+    if (not _soaParticleOrder.empty()) {
+      if (_soaParticleOrder.size() != _aosNeighborLists.size()) {
+        utils::ExceptionHandler::exception(
+            "VerletLists::generateSoAListFromAoSVerletLists(): sorted SoA particle order size ({}) does not match AoS "
+            "neighbor-list size ({}).",
+            _soaParticleOrder.size(), _aosNeighborLists.size());
+      }
+
+      for (size_t index = 0; index < _soaParticleOrder.size(); ++index) {
+        // The explicit sorted order defines the SoA index of each particle.
+        _particlePtr2indexMap[_soaParticleOrder[index]] = index;
+      }
+
+    } else {
+      size_t index = 0;
+
+      // Existing fallback path. Here we have to iterate over all particles, as particles might be later on marked for
+      // deletion, and we cannot differentiate them from particles already marked for deletion.
+      for (auto iter = this->begin(IteratorBehavior::ownedOrHaloOrDummy); iter.isValid(); ++iter, ++index) {
+        // set the map
+        _particlePtr2indexMap[&(*iter)] = index;
+      }
     }
     size_t accumulatedListSize = 0;
+
     for (const auto &[particlePtr, neighborPtrVector] : _aosNeighborLists) {
       accumulatedListSize += neighborPtrVector.size();
-      size_t i_id = _particlePtr2indexMap[particlePtr];
+
+      const auto centerIndexIter = _particlePtr2indexMap.find(particlePtr);
+      if (centerIndexIter == _particlePtr2indexMap.end()) {
+        utils::ExceptionHandler::exception(
+            "VerletLists::generateSoAListFromAoSVerletLists(): center particle missing from particle-to-SoA-index "
+            "map.");
+      }
+
+      const size_t i_id = centerIndexIter->second;
       // each soa neighbor list should be of the same size as for aos
       _soaNeighborLists[i_id].resize(neighborPtrVector.size());
+
       size_t j = 0;
       for (auto &neighborPtr : neighborPtrVector) {
-        _soaNeighborLists[i_id][j] = _particlePtr2indexMap[neighborPtr];
+        const auto neighborIndexIter = _particlePtr2indexMap.find(neighborPtr);
+        if (neighborIndexIter == _particlePtr2indexMap.end()) {
+          utils::ExceptionHandler::exception(
+              "VerletLists::generateSoAListFromAoSVerletLists(): neighbor particle missing from particle-to-SoA-index "
+              "map.");
+        }
+
+        _soaNeighborLists[i_id][j] = neighborIndexIter->second;
         j++;
       }
     }
@@ -233,6 +304,19 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
    * The index indexes all particles in the container.
    */
   std::unordered_map<const Particle_T *, size_t> _particlePtr2indexMap;
+
+  /**
+   * Explicit particle order for sorted SoA traversal.
+   *
+   * If populated, _soaParticleOrder[i] is the particle stored at SoA index i.
+   * For VerletListsReferences with global particle sorting enabled, this order
+   * follows the sorted global ParticleVector.
+   *
+   * This vector is used consistently for SoA index mapping, SoA loading, and SoA
+   * extraction. If it is empty, the traversal falls back to the existing
+   * cell-based SoA order.
+   */
+  std::vector<Particle_T *> _soaParticleOrder;
 
   /**
    * verlet list for SoA:

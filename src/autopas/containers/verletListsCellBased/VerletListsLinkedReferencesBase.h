@@ -67,13 +67,6 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
           "LogicHandler "
           "should reject this (as Configuration::hasCompatibleValues should return false).");
     }
-    // TODO: Remove this sanity check
-    AutoPasLog(
-        INFO,
-        "VerletListsReferences particle sorting config: enabled={}, resolution={}, order={}, blockSize=[{}, {}, {}]",
-        _verletParticleSortingConfig.enabled, to_string(_verletParticleSortingConfig.resolution),
-        to_string(_verletParticleSortingConfig.order), _verletParticleSortingConfig.blockSize[0],
-        _verletParticleSortingConfig.blockSize[1], _verletParticleSortingConfig.blockSize[2]);
   }
 
   void reserve(size_t numParticles, size_t numParticlesHaloEstimate) override {
@@ -202,13 +195,6 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
       // Sorting physically reorders the global ParticleVector and then rebuilds
       // all ReferenceParticleCell pointer lists.
       sortParticlesByConfiguredKey();
-      // TODO: Remove this sanity check
-      static bool printedSortingSanityCheck = false;
-      if (not printedSortingSanityCheck) {
-        printedSortingSanityCheck = true;
-        AutoPasLog(INFO, "VerletListsReferences global particle sorting executed: resolution={}, order={}",
-                   to_string(_verletParticleSortingConfig.resolution), to_string(_verletParticleSortingConfig.order));
-      }
     }
 
     return leavingParticles;
@@ -262,6 +248,21 @@ class VerletListsLinkedReferencesBase : public ParticleContainerInterface<Partic
   template <typename Lambda>
   void forEach(Lambda forEachLambda, IteratorBehavior behavior) {
     return _linkedCells.forEach(forEachLambda, behavior);
+  }
+
+  /**
+   * Iterate over particles in the physical order of the underlying
+   * LinkedCellsReferences global ParticleVector.
+   *
+   * This order is the relevant order after global particle sorting. It is not the
+   * same abstraction as normal container iteration, which may be cell-based.
+   *
+   * @tparam Lambda Callable type accepting Particle_T&.
+   * @param forEachLambda Function executed for every particle in storage order.
+   */
+  template <typename Lambda>
+  void forEachParticleInStorageOrder(Lambda forEachLambda) {
+    return _linkedCells.forEachParticleInStorageOrder(forEachLambda);
   }
 
   /**

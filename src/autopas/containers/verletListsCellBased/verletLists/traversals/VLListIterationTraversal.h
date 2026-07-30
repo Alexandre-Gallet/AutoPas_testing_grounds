@@ -45,6 +45,13 @@ class VLListIterationTraversal : public TraversalInterface, public VLTraversalIn
   void initTraversal() override {
     auto &cells = *(this->_cells);
     if (_dataLayout == DataLayoutOption::soa) {
+      if (this->_soaParticleOrder != nullptr and not this->_soaParticleOrder->empty()) {
+        // Sorted SoA path: the explicit particle order defines the SoA index order.
+        _functor.SoALoader(*this->_soaParticleOrder, _soa);
+        return;
+      }
+
+      // Existing fallback path: concatenate cells in cell-vector order.
       // First resize the SoA to the required number of elements to store. This avoids resizing successively the SoA in
       // SoALoader.
       std::vector<size_t> offsets(cells.size() + 1);
@@ -64,6 +71,15 @@ class VLListIterationTraversal : public TraversalInterface, public VLTraversalIn
   void endTraversal() override {
     auto &cells = *(this->_cells);
     if (_dataLayout == DataLayoutOption::soa) {
+      if (this->_soaParticleOrder != nullptr and not this->_soaParticleOrder->empty()) {
+        // Sorted SoA path: extract computed attributes using the same order that
+        // was used for loading.
+        _functor.SoAExtractor(*this->_soaParticleOrder, _soa);
+        return;
+      }
+
+      // Existing fallback path: extract back to cells in the same order used by
+      // the cell-based SoA loader.
       size_t offset = 0;
       for (auto &cell : cells) {
         _functor.SoAExtractor(cell, _soa, offset);

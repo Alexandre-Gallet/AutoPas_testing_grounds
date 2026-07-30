@@ -53,7 +53,7 @@ class Functor {
    * Constructor
    * @param cutoff
    */
-  explicit Functor(double cutoff) : _cutoff(cutoff){};
+  explicit Functor(double cutoff) : _cutoff(cutoff) {};
 
   virtual ~Functor() = default;
 
@@ -61,14 +61,14 @@ class Functor {
    * This function is called at the start of each traversal.
    * Use it for resetting global values or initializing them.
    */
-  virtual void initTraversal(){};
+  virtual void initTraversal() {};
 
   /**
    * This function is called at the end of each traversal.
    * You may accumulate values in this step.
    * @param newton3
    */
-  virtual void endTraversal(bool newton3){};
+  virtual void endTraversal(bool newton3) {};
 
   /**
    * Get attributes needed for computation.
@@ -126,6 +126,38 @@ class Functor {
   template <typename ParticleCell>
   void SoAExtractor(ParticleCell &cell, SoA<SoAArraysType> &soa, size_t offset) {
     SoAExtractorImpl(cell, soa, offset, std::make_index_sequence<Functor_T::getComputedAttr().size()>{});
+  }
+
+  /**
+   * Copies AoS particle data from an explicit particle pointer order into the given SoA.
+   *
+   * The vector index defines the SoA index:
+   *
+   * particleOrder[i] -> SoA index i
+   *
+   * This is useful for containers whose desired SoA traversal order is not identical
+   * to cell iteration order.
+   *
+   * @param particleOrder Explicit particle pointer order.
+   * @param soa Structure of arrays where the particle data is copied to.
+   */
+  void SoALoader(std::vector<Particle_T *> &particleOrder, SoA<SoAArraysType> &soa) {
+    SoALoaderImpl(particleOrder, soa, std::make_index_sequence<Functor_T::getNeededAttr().size()>{});
+  }
+
+  /**
+   * Copies computed values from the given SoA back into particles using an explicit
+   * particle pointer order.
+   *
+   * The vector index must match the index used when loading the SoA:
+   *
+   * particleOrder[i] <- SoA index i
+   *
+   * @param particleOrder Explicit particle pointer order.
+   * @param soa Structure of arrays from where computed values are copied.
+   */
+  void SoAExtractor(std::vector<Particle_T *> &particleOrder, SoA<SoAArraysType> &soa) {
+    SoAExtractorImpl(particleOrder, soa, std::make_index_sequence<Functor_T::getComputedAttr().size()>{});
   }
 
   /**
@@ -278,6 +310,49 @@ class Functor {
     }
   }
 
+  /**
+   * Implements loading of SoA buffers from an explicit particle pointer order.
+   *
+   * @tparam I Attribute indices inside Functor_T::getNeededAttr().
+   * @param particleOrder Explicit particle pointer order. Index i maps to SoA index i.
+   * @param soa SoA buffer.
+   */
+  template <std::size_t... I>
+  void SoALoaderImpl(std::vector<Particle_T *> &particleOrder, ::autopas::SoA<SoAArraysType> &soa,
+                     std::index_sequence<I...>) {
+    soa.resizeArrays(particleOrder.size());
+
+    [[maybe_unused]] auto const pointer = std::make_tuple(soa.template begin<Functor_T::getNeededAttr()[I]>()...);
+
+    for (size_t i = 0; i < particleOrder.size(); ++i) {
+      Particle_T &particle = *particleOrder[i];
+
+      // Write every needed particle attribute into the SoA array at the same
+      // index as the particle pointer in particleOrder.
+      ((std::get<I>(pointer)[i] = particle.template get<Functor_T::getNeededAttr()[I]>()), ...);
+    }
+  }
+
+  /**
+   * Implements extraction of computed SoA values into an explicit particle pointer order.
+   *
+   * @tparam I Attribute indices inside Functor_T::getComputedAttr().
+   * @param particleOrder Explicit particle pointer order. Index i maps to SoA index i.
+   * @param soa SoA buffer.
+   */
+  template <std::size_t... I>
+  void SoAExtractorImpl(std::vector<Particle_T *> &particleOrder, ::autopas::SoA<SoAArraysType> &soa,
+                        std::index_sequence<I...>) {
+    [[maybe_unused]] auto const pointer = std::make_tuple(soa.template begin<Functor_T::getComputedAttr()[I]>()...);
+
+    for (size_t i = 0; i < particleOrder.size(); ++i) {
+      Particle_T &particle = *particleOrder[i];
+
+      // Write every computed attribute back to the same particle that was loaded
+      // into this SoA index.
+      (particle.template set<Functor_T::getComputedAttr()[I]>(std::get<I>(pointer)[i]), ...);
+    }
+  }
   double _cutoff;
 };
 

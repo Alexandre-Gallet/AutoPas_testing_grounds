@@ -147,6 +147,21 @@ class ParticleVector {
   }
 
   /**
+   * Iterate over all particles in their physical storage order.
+   *
+   * This is intentionally equivalent to forEach(), but the explicit name is useful
+   * for code paths where the order itself matters, e.g. constructing a SoA buffer
+   * from a globally sorted ParticleVector.
+   *
+   * @tparam Lambda Callable type accepting Particle_T&.
+   * @param forEachLambda Function executed for every particle.
+   */
+  template <typename Lambda>
+  void forEachInStorageOrder(Lambda forEachLambda) {
+    forEach(forEachLambda);
+  }
+
+  /**
    * Iterate over all particles and execute lambda function on them.
    * @param reduceLambda lambda function that defines how to modify particles
    * @param result reference to variable where result will be stored after operation

@@ -31,14 +31,17 @@ class VLTraversalInterface {
    * @param cells The cells of the underlying LinkedCells container.
    * @param aosNeighborLists The AoS neighbor list.
    * @param soaNeighborLists The SoA neighbor list.
+   * @param soaParticleOrder The SoA in sorted order
    */
   virtual void setCellsAndNeighborLists(
       std::vector<LinkedParticleCell> &cells,
       typename VerletListHelpers<typename LinkedParticleCell::ParticleType>::NeighborListAoSType &aosNeighborLists,
-      std::vector<std::vector<size_t, autopas::AlignedAllocator<size_t>>> &soaNeighborLists) {
+      std::vector<std::vector<size_t, autopas::AlignedAllocator<size_t>>> &soaNeighborLists,
+      std::vector<typename LinkedParticleCell::ParticleType *> *soaParticleOrder = nullptr) {
     _cells = &cells;
     _aosNeighborLists = &aosNeighborLists;
     _soaNeighborLists = &soaNeighborLists;
+    _soaParticleOrder = soaParticleOrder;
   }
 
  protected:
@@ -55,6 +58,15 @@ class VLTraversalInterface {
    * The SoA neighbor list of the verlet lists container.
    */
   std::vector<std::vector<size_t, autopas::AlignedAllocator<size_t>>> *_soaNeighborLists = nullptr;
+
+  /**
+   * Optional explicit particle order for SoA loading and extraction.
+   *
+   * If this pointer is set and the vector is non-empty, the traversal loads the
+   * SoA buffer from this order instead of concatenating cells. The vector index
+   * is then the SoA index.
+   */
+  std::vector<typename LinkedParticleCell::ParticleType *> *_soaParticleOrder = nullptr;
 };
 
 }  // namespace autopas

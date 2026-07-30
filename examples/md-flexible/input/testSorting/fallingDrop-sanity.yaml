@@ -1,10 +1,10 @@
 # This yaml file is a simplified falling drop test
-container                        :  [verletListsReferences]
+container                        :  [VerletListsReferences]
 verlet-rebuild-frequency         :  10
 verlet-skin-radius               :  1.0
 verlet-cluster-size              :  4
 selector-strategy                :  Fastest-Absolute-Value
-data-layout                      :  [AoS] # using AoS effects the iteration over particles in base Verlet List implementation
+data-layout                      :  [SoA] # using AoS effects the iteration over particles in base Verlet List implementation
 traversal                        :  [vl_list_iteration] # Please see AllOptions.yaml for a comprehensive list of traversals
 tuning-strategies                :  []
 tuning-interval                  :  2500
@@ -15,7 +15,7 @@ newton3                          :  [disabled]
 
 verlet-particle-sorting-enabled   :  true
 verlet-particle-sorting-resolution:  particle
-verlet-particle-sorting-order     :  linear
+verlet-particle-sorting-order     :  hilbert
 verlet-particle-sorting-block-size: [4, 4, 4]
 
 cutoff                           :  3
@@ -23,7 +23,7 @@ box-min                          :  [0, 0, 0]
 box-max                          :  [7.25, 7.25, 7.25]
 cell-size                        :  [1]
 deltaT                           :  0.0005
-iterations                       :  30 # For sanity check only small amount of iterations suffices
+iterations                       :  500 # For sanity check only small amount of iterations suffices
 energy-sensor                    :  likwid
 boundary-type                    :  [reflective,reflective,reflective]
 globalForce                      :  [0,0,-12]
@@ -60,8 +60,8 @@ Objects:
 #   deltaTemperature               :  0.1
 #   thermostatInterval             :  10
 #   addBrownianMotion              :  false
-#vtk-filename                     :  homogenousCubeGrid  #comment out this and next 2 lines to turn of vtk
-#vtk-write-frequency              :  10
-#vtk-output-folder                :  vtkOutputFolder
+vtk-filename                     :  fallingDrop-sanity  #comment out this and next 2 lines to turn of vtk
+vtk-write-frequency              :  10
+vtk-output-folder                :  vtkOutputFolder
 no-end-config                    :  true
 log-level                        :  info
