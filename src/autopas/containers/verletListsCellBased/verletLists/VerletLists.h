@@ -286,6 +286,15 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
       }
     }
 
+    if (not _soaParticleOrder.empty()) {
+      // The explicit SoA particle order makes neighboring indices spatially meaningful.
+      // Sorting each neighbor vector by index keeps the interaction set unchanged, but
+      // makes the neighbor access order more sequential in the SoA arrays.
+      for (auto &neighborList : _soaNeighborLists) {
+        std::sort(neighborList.begin(), neighborList.end());
+      }
+    }
+
     AutoPasLog(DEBUG,
                "VerletLists::generateSoAListFromAoSVerletLists: average verlet list "
                "size is {}",
