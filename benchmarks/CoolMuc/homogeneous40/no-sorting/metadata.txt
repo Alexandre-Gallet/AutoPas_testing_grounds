@@ -1,10 +1,12 @@
 ===== DATE =====
-Fri Jul 31 08:32:33 AM CEST 2026
+Fri Jul 31 09:24:20 AM CEST 2026
 
 ===== JOB =====
-job_name=autopas_memory
-job_id=5351224
-node_list=cm4r03c01s06
+job_name=autopas_scenario
+job_id=5351303
+array_job_id=5351301
+array_task_id=0
+node_list=cm4r07c01s01
 submit_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 working_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 cpus_per_task=1
@@ -12,10 +14,13 @@ cpus_per_task=1
 ===== BENCHMARK =====
 scenario=homogeneous40
 variant=no-sorting
+runs=1
 benchmark_root=benchmarks/CoolMuc/homogeneous40
 raw_result_root=/dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40
 yaml=benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
-command=srun --exact -n 1 -c 1 --cpu-bind=cores vtune -collect memory-access -result-dir /dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40/no-sorting/vtune_memory/result -- ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
+runtime_command=srun --exact -n 1 -c 1 --cpu-bind=cores ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
+hotspots_command=srun --exact -n 1 -c 1 --cpu-bind=cores vtune -collect hotspots -result-dir /dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40/no-sorting/vtune_hotspots/result -- ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
+memory_command=srun --exact -n 1 -c 1 --cpu-bind=cores vtune -collect memory-access -result-dir /dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40/no-sorting/vtune_memory/result -- ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
 
 ===== OPENMP =====
 OMP_NUM_THREADS=1
@@ -46,12 +51,11 @@ Thread(s) per core:                   2
 Core(s) per socket:                   40
 Socket(s):                            2
 Stepping:                             6
-CPU(s) scaling MHz:                   83%
+CPU(s) scaling MHz:                   76%
 CPU max MHz:                          2300.0000
 CPU min MHz:                          800.0000
 BogoMIPS:                             4600.00
-Flags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 intel_ppin ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect wbnoinvd dtherm arat pln pts vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid fsrm md_clear pconfig flush_l1d arch_capabilities
-Virtualization:                       VT-x
+Flags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 ds_cpl smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 intel_ppin ssbd mba ibrs ibpb stibp ibrs_enhanced fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect wbnoinvd dtherm arat pln pts avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid fsrm md_clear pconfig flush_l1d arch_capabilities
 L1d cache:                            3.8 MiB (80 instances)
 L1i cache:                            2.5 MiB (80 instances)
 L2 cache:                             100 MiB (80 instances)
