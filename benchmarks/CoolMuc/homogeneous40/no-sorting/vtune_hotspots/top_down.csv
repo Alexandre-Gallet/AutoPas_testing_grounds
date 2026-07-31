@@ -1,0 +1,42 @@
+Function Stack,CPU Time:Total,CPU Time:Effective Time:Total,CPU Time:Spin Time:Total,CPU Time:Overhead Time:Total,CPU Time:Self,CPU Time:Effective Time:Self,CPU Time:Spin Time:Self,CPU Time:Overhead Time:Self,Module,Function (Full),Source File,Start Address
+Total,100.000000,100.000000,,,0.0,0.0,0.0,0.0,[Unknown],[Unknown],[Unknown],[Unknown]
+ pty_thread_create,100.000000,100.000000,,,0.0,0.0,0.0,0.0,srun,pty_thread_create,srun_pty.c,0x409ada
+  __libc_start_call_main,100.000000,100.000000,,,0.0,0.0,0.0,0.0,libc.so.6,__libc_start_call_main,[Unknown],0x40e6e
+   main,100.000000,100.000000,,,0.0,0.0,0.0,0.0,srun,main,srun.wrapper.c,0x409d12
+    srun,100.000000,100.000000,,,0.0,0.0,0.0,0.0,srun,srun,srun.c,0x408292
+     slurm_select_init,59.870137,59.870137,,,0.0,0.0,0.0,0.0,libslurmfull.so,slurm_select_init,node_select.c,0xc18eb
+      GetSubprogramsListInImage,59.870137,59.870137,,,0.0,0.0,0.0,0.0,libpindwarf.so,GetSubprogramsListInImage,[Unknown],0x7f30
+       IterateOnCompileUnits,59.870137,59.870137,,,0.0,0.0,0.0,0.0,libpindwarf.so,"IterateOnCompileUnits(DWARFData&, bool, bool, unsigned long long)",[Unknown],0x6e90
+        dwarf_next_cu_header_d,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,dwarf_next_cu_header_d,[Unknown],0x12cb0
+         _dwarf_next_cu_header_internal,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_next_cu_header_internal,[Unknown],0x129c0
+          _dwarf_load_die_containing_section,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_load_die_containing_section,[Unknown],0x12830
+           _dwarf_load_debug_info,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_load_debug_info,[Unknown],0x4f0c0
+            _dwarf_load_section,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_load_section,[Unknown],0x2cb30
+             elf_load_nolibelf_section,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,elf_load_nolibelf_section,[Unknown],0x19c50
+              _dwarf_object_read_random,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_object_read_random,[Unknown],0x42e80
+               read,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libc-dynamic.so,read,[Unknown],0x65660
+                OS_ReadFD,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libc-dynamic.so,OS_ReadFD,[Unknown],0x7d5d0
+                 OS_SyscallDo,43.932263,43.932263,,,0.0,0.0,0.0,0.0,libc-dynamic.so,OS_SyscallDo,[Unknown],0x794c0
+                  OS_BARESYSCALL_DoCallAsmIntel64Linux,43.932263,43.932263,,,0.021895,0.021895,0.0,0.0,libc-dynamic.so,OS_BARESYSCALL_DoCallAsmIntel64Linux,[Unknown],0x80964
+        TraverseDwarfRecursive,15.937874,15.937874,,,0.0,0.0,0.0,0.0,libpindwarf.so,"TraverseDwarfRecursive(Dwarf_Die_s*&, DWARFData&, int&)",[Unknown],0x61f0
+         TraverseDwarfRecursive,15.937874,15.937874,,,0.0,0.0,0.0,0.0,libpindwarf.so,"TraverseDwarfRecursive(Dwarf_Die_s*&, DWARFData&, int&)",[Unknown],0x61f0
+          TraverseDwarfRecursive,15.937874,15.937874,,,0.0,0.0,0.0,0.0,libpindwarf.so,"TraverseDwarfRecursive(Dwarf_Die_s*&, DWARFData&, int&)",[Unknown],0x61f0
+           dwarf_child,15.937874,15.937874,,,0.0,0.0,0.0,0.0,libdwarf.so,dwarf_child,[Unknown],0x12e40
+            _dwarf_next_die_info_ptr.constprop.0,15.937874,15.937874,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_next_die_info_ptr.constprop.0,[Unknown],0xfe80
+             _dwarf_get_abbrev_for_code,15.937874,15.937874,,,0.007943,0.007943,0.0,0.0,libdwarf.so,_dwarf_get_abbrev_for_code,[Unknown],0x4f230
+     create_srun_job,20.064931,20.064931,,,0.0,0.0,0.0,0.0,srun,create_srun_job,srun_job.c,0x413b36
+      existing_allocation,20.064931,20.064931,,,0.0,0.0,0.0,0.0,srun,existing_allocation,allocate.c,0x40b2a6
+       slurm_het_job_lookup,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libslurmfull.so,slurm_het_job_lookup,allocate.c,0x46a63
+        uselocale,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libc-dynamic.so,uselocale,[Unknown],0x69660
+         OS_TlsSetValue,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libc-dynamic.so,OS_TlsSetValue,[Unknown],0x7bba0
+          OS_TlsSetValueForThread,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libc-dynamic.so,OS_TlsSetValueForThread,[Unknown],0x7bb40
+           IntHashMap_PutLazy,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libc-dynamic.so,IntHashMap_PutLazy,[Unknown],0x7a970
+            OS_RWLockAcquireWrite,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libc-dynamic.so,OS_RWLockAcquireWrite,[Unknown],0x79e30
+             OS_MutexLock,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libc-dynamic.so,OS_MutexLock,[Unknown],0x7b160
+              OS_MutexLockTid,20.064931,20.064931,,,0.010000,0.010000,0.0,0.0,libc-dynamic.so,OS_MutexLockTid,[Unknown],0x7afb0
+     switch_init,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libslurmfull.so,switch_init,switch.c,0x1672f9
+      GetSubprogramsListInImage,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libpindwarf.so,GetSubprogramsListInImage,[Unknown],0x7f30
+       IterateOnCompileUnits,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libpindwarf.so,"IterateOnCompileUnits(DWARFData&, bool, bool, unsigned long long)",[Unknown],0x6e90
+        TraverseDwarfRecursive,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libpindwarf.so,"TraverseDwarfRecursive(Dwarf_Die_s*&, DWARFData&, int&)",[Unknown],0x61f0
+         _dwarf_siblingof_internal,20.064931,20.064931,,,0.0,0.0,0.0,0.0,libdwarf.so,_dwarf_siblingof_internal,[Unknown],0x104e0
+          _dwarf_get_alloc,20.064931,20.064931,,,0.010000,0.010000,0.0,0.0,libdwarf.so,_dwarf_get_alloc,[Unknown],0xbda0

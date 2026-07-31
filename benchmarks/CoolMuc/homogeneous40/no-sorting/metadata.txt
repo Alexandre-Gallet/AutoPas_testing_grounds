@@ -1,10 +1,10 @@
 ===== DATE =====
-Fri Jul 31 06:58:56 AM CEST 2026
+Fri Jul 31 07:59:32 AM CEST 2026
 
 ===== JOB =====
-job_name=autopas_runtime
-job_id=5351073
-node_list=cm4r03c01s06
+job_name=autopas_hotspots
+job_id=5351175
+node_list=cm4r03c01s07
 submit_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 working_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 cpus_per_task=1
@@ -12,10 +12,10 @@ cpus_per_task=1
 ===== BENCHMARK =====
 scenario=homogeneous40
 variant=no-sorting
-runs=10
 benchmark_root=benchmarks/CoolMuc/homogeneous40
+raw_result_root=/dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40
 yaml=benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
-command=srun --exact -n 1 -c 1 --cpu-bind=cores ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
+command=vtune -collect hotspots -result-dir /dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40/no-sorting/vtune_hotspots/result -- srun --exact -n 1 -c 1 --cpu-bind=cores ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
 
 ===== OPENMP =====
 OMP_NUM_THREADS=1
@@ -24,8 +24,9 @@ OMP_PLACES=cores
 
 ===== MODULES =====
 Currently Loaded Modulefiles:
- 1) stack/24.4.0{arch=auto}(default) <aL>   3) gcc/14.2.0  
- 2) slurm_setup/1.0(default)                4) module-git  
+ 1) stack/24.4.0{arch=auto}(default) <aL>   4) module-git                   
+ 2) slurm_setup/1.0(default)                5) intel-oneapi-vtune/2024.2.1  
+ 3) gcc/14.2.0                             
 
 Key:
 {variant=value}  (symbolic-version)  <module-tag>  <aL>=auto-loaded  
@@ -45,7 +46,7 @@ Thread(s) per core:                   2
 Core(s) per socket:                   40
 Socket(s):                            2
 Stepping:                             6
-CPU(s) scaling MHz:                   87%
+CPU(s) scaling MHz:                   43%
 CPU max MHz:                          2300.0000
 CPU min MHz:                          800.0000
 BogoMIPS:                             4600.00
@@ -78,6 +79,11 @@ Vulnerability Tsx async abort:        Not affected
 ===== EXECUTABLE =====
 -rwxr-xr-x+ 1 ge63duc3 pr63so 119M Jul 30 11:15 ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible
 2b00dd6e2ed8b45f1ad668b302596492361cf5fdb64d4fbc8658c78e5c640524  ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible
+
+===== TOOLS =====
+/dss/lrzsys/sys/spack/release/24.4.0/opt/x86_64/intel-oneapi-vtune/2024.2.1-gcc-zuja4jm/vtune/2024.2/bin64/vtune
+Intel(R) VTune(TM) Profiler 2024.2.1 (build 628577) Command Line Tool
+Copyright (C) 2009 Intel Corporation. All rights reserved.
 
 ===== GIT =====
 git command not available in this SLURM job environment

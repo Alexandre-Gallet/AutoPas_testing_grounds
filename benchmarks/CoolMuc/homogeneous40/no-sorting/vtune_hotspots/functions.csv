@@ -1,0 +1,5 @@
+Function,CPU Time,CPU Time:Effective Time,CPU Time:Spin Time,CPU Time:Overhead Time,Module,Function (Full),Source File,Start Address
+OS_BARESYSCALL_DoCallAsmIntel64Linux,0.021895,0.021895,0.0,0.0,libc-dynamic.so,OS_BARESYSCALL_DoCallAsmIntel64Linux,[Unknown],0x80964
+OS_MutexLockTid,0.010000,0.010000,0.0,0.0,libc-dynamic.so,OS_MutexLockTid,[Unknown],0x7afb0
+_dwarf_get_alloc,0.010000,0.010000,0.0,0.0,libdwarf.so,_dwarf_get_alloc,[Unknown],0xbda0
+_dwarf_get_abbrev_for_code,0.007943,0.007943,0.0,0.0,libdwarf.so,_dwarf_get_abbrev_for_code,[Unknown],0x4f230
