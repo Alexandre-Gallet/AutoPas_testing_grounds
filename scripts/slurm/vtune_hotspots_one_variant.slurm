@@ -88,7 +88,7 @@ vtune --version
   echo "benchmark_root=${BENCHMARK_ROOT}"
   echo "raw_result_root=${RAW_RESULT_ROOT}"
   echo "yaml=${YAML}"
-  echo "command=vtune -collect hotspots -result-dir ${RESULT_DIR} -- srun --exact -n 1 -c 1 --cpu-bind=cores ${APP} --yaml-filename ${YAML}"
+  echo "command=srun --exact -n 1 -c 1 --cpu-bind=cores vtune -collect hotspots -result-dir ${RESULT_DIR} -- ${APP} --yaml-filename ${YAML}"
   echo ""
   echo "===== OPENMP ====="
   echo "OMP_NUM_THREADS=${OMP_NUM_THREADS}"
@@ -130,10 +130,11 @@ fi
 
 echo ""
 echo "===== VTUNE HOTSPOTS COLLECTION ====="
-vtune -collect hotspots \
+srun --exact -n 1 -c 1 --cpu-bind=cores \
+  vtune -collect hotspots \
   -result-dir "${RESULT_DIR}" \
   -- \
-  srun --exact -n 1 -c 1 --cpu-bind=cores "${APP}" --yaml-filename "${YAML}"
+  "${APP}" --yaml-filename "${YAML}"
 
 echo ""
 echo "===== VTUNE HOTSPOTS REPORTS ====="
