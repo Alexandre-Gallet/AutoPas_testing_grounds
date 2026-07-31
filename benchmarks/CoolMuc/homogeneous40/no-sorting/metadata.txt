@@ -1,9 +1,9 @@
 ===== DATE =====
-Fri Jul 31 07:59:32 AM CEST 2026
+Fri Jul 31 08:15:44 AM CEST 2026
 
 ===== JOB =====
 job_name=autopas_hotspots
-job_id=5351175
+job_id=5351198
 node_list=cm4r03c01s07
 submit_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 working_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
@@ -15,7 +15,7 @@ variant=no-sorting
 benchmark_root=benchmarks/CoolMuc/homogeneous40
 raw_result_root=/dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40
 yaml=benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
-command=vtune -collect hotspots -result-dir /dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40/no-sorting/vtune_hotspots/result -- srun --exact -n 1 -c 1 --cpu-bind=cores ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
+command=srun --exact -n 1 -c 1 --cpu-bind=cores vtune -collect hotspots -result-dir /dss/lxclscratch/0D/ge63duc3/autopas_raw_results/homogeneous40/no-sorting/vtune_hotspots/result -- ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible --yaml-filename benchmarks/CoolMuc/homogeneous40/inputs/no-sorting.yaml
 
 ===== OPENMP =====
 OMP_NUM_THREADS=1
