@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,57.110,benchmarks/CoolMuc/homogeneous70-soa/block-morton/runtime/run_1.out
+2,57.017,benchmarks/CoolMuc/homogeneous70-soa/block-morton/runtime/run_2.out
+3,56.863,benchmarks/CoolMuc/homogeneous70-soa/block-morton/runtime/run_3.out
