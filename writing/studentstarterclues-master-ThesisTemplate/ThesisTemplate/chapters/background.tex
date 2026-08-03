@@ -1,0 +1,64 @@
+\chapter{Background}
+\label{ch:Background}
+
+\begin{itemize}
+\item Molecular Dynamics
+    \begin{itemize}
+        \item Pairwise interactions
+        \item Lennard-Jones potential
+        \item Cutoff radius
+    \end{itemize}
+
+\item Verlet Lists
+\begin{itemize}
+    \item Purpose of Verlet lists
+    \item Verlet skin
+    \item Rebuild frequency
+    \item Neighbor-list construction
+    \item Force traversal
+\end{itemize}
+
+\item Linked Cells
+\begin{itemize}
+    \item Cell decomposition
+    \item Nearby-cell search
+    \item Relationship between linked cells and Verlet-list-references construction
+\end{itemize}
+
+\item Data Layouts
+    \begin{itemize}
+    \item Array of Structures
+        \begin{itemize}
+            \item Particle objects stored as complete objects
+            \item Pointer-based neighbor access in the current AoS Verlet-list traversal
+            \item Current unordered-map based center-particle iteration
+        \end{itemize}
+    \item Structure of Arrays
+        \begin{itemize}
+            \item Particle attributes stored in separate arrays
+            \item Overhead from translation of AoS storage to SoA structure
+            \item Advantages from force traversal because of AVX commands in Functor
+        \end{itemize}
+    \end{itemize}
+
+\item Cache Locality
+    \begin{itemize}
+        \item Cache hierarchy
+        \item Cache lines
+        \item Spatial locality
+        \item Temporal locality
+        \item L1, L2, and L3 misses
+        \item Memory stalls
+        \item Retired loads
+    \end{itemize}
+
+\item Spatial Sorting Orders (This should be the main focus)
+    \begin{itemize}
+        \item Linear ordering
+        \item Morton ordering
+        \item Hilbert ordering
+        \item Expected locality properties
+    \end{itemize}
+\end{itemize}
+
+

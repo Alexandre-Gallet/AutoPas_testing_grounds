@@ -1,0 +1,19 @@
+\chapter{Improved Force Traversal}
+\label{ch:improved_force_traversal}
+
+\begin{itemize}
+    \item SoA sorting
+    \item Neighbour-list traversal with linear sorting
+    \item faster hilbert, morton and linear encoding
+    \begin{itemize}
+        \item Still needs to be implemented. Here are the main ideas though.
+        \begin{itemize}
+            \item cached sorting keys (the most obvious)
+            \item radix sort for integer spatial keys (the most obvious)
+            \item threading with openMP for sorting (the most obvious and pressing)
+            \item faster Hilbert key generation
+            \item faster neighbour list construction through traversal
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
