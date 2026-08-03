@@ -46,3 +46,4 @@ benchmarks/**/vtune_memory/result/
 # Python bytecode generated when running benchmark helper scripts.
 __pycache__/
 *.py[cod]
+*.matplotlib_cache/

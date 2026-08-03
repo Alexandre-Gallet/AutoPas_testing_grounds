@@ -48,6 +48,7 @@ VARIANTS = [
 RUNTIME_PHASES = [
     "force_traversal",
     "verlet_construction",
+    "soa_preparation",
     "sorting",
     "reference_rebuild_container_update",
     "time_integration",
@@ -413,6 +414,15 @@ def extract_runtime_phase_percentages(top_down_path: Path) -> tuple[dict[str, fl
             required=False,
         ),
     )
+    soa_preparation_row = find_first_row(
+        rows,
+        MatchRule(
+            phase="soa_preparation",
+            include=("generateSoAListFromAoSVerletLists",),
+            exclude=(),
+            required=False,
+        ),
+    )
 
     position_row = find_first_row(
         rows,
@@ -435,17 +445,23 @@ def extract_runtime_phase_percentages(top_down_path: Path) -> tuple[dict[str, fl
     verlet = require_top_down_value(verlet_row, ("CPU Time:Total",), str(top_down_path))
     update_total = require_top_down_value(update_container_row, ("CPU Time:Total",), str(top_down_path))
     sorting = require_top_down_value(sorting_row, ("CPU Time:Total",), str(top_down_path)) if sorting_row is not None else 0.0
+    soa_preparation = (
+        require_top_down_value(soa_preparation_row, ("CPU Time:Total",), str(top_down_path))
+        if soa_preparation_row is not None
+        else 0.0
+    )
     position = require_top_down_value(position_row, ("CPU Time:Total",), str(top_down_path))
     velocity = require_top_down_value(velocity_row, ("CPU Time:Total",), str(top_down_path))
 
     reference_rebuild = max(update_total - sorting, 0.0)
     time_integration = position + velocity
-    known_sum = force + verlet + sorting + reference_rebuild + time_integration
+    known_sum = force + verlet + soa_preparation + sorting + reference_rebuild + time_integration
     other = max(100.0 - known_sum, 0.0)
 
     percentages = {
         "force_traversal": force,
         "verlet_construction": verlet,
+        "soa_preparation": soa_preparation,
         "sorting": sorting,
         "reference_rebuild_container_update": reference_rebuild,
         "time_integration": time_integration,
@@ -454,6 +470,7 @@ def extract_runtime_phase_percentages(top_down_path: Path) -> tuple[dict[str, fl
     matches = {
         "force_traversal": row_text(force_row),
         "verlet_construction": row_text(verlet_row),
+        "soa_preparation": row_text(soa_preparation_row) if soa_preparation_row is not None else "",
         "sorting": row_text(sorting_row) if sorting_row is not None else "",
         "reference_rebuild_container_update": row_text(update_container_row),
         "time_integration": f"{row_text(position_row)} | {row_text(velocity_row)}",

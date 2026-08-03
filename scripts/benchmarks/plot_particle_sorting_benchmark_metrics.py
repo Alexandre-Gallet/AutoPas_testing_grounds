@@ -34,6 +34,7 @@ VARIANTS = [
 RUNTIME_PHASES = [
     "force_traversal",
     "verlet_construction",
+    "soa_preparation",
     "sorting",
     "reference_rebuild_container_update",
     "time_integration",
@@ -43,6 +44,7 @@ RUNTIME_PHASES = [
 PHASE_LABELS = {
     "force_traversal": "Force traversal",
     "verlet_construction": "Verlet construction",
+    "soa_preparation": "SoA preparation",
     "sorting": "Sorting",
     "reference_rebuild_container_update": "Reference rebuild/update",
     "time_integration": "Time integration",
@@ -52,6 +54,7 @@ PHASE_LABELS = {
 PHASE_COLORS = {
     "force_traversal": "#1F3A5F",
     "verlet_construction": "#2F7D6D",
+    "soa_preparation": "#7A8F2A",
     "sorting": "#9E2F45",
     "reference_rebuild_container_update": "#67507A",
     "time_integration": "#B96F1D",
