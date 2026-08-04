@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #SBATCH -J autopas_variant
 #SBATCH -D ./
 #SBATCH -o ./benchmarks/logs/%x.%j.%N.out
