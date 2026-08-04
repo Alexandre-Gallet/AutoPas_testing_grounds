@@ -585,6 +585,13 @@ class MDFlexConfig {
   MDFlexOption<bool, __LINE__> verletParticleSortingEnabled{
       false, "verlet-particle-sorting-enabled", true, "Enable global particle sorting for VerletListsReferences."};
 
+  MDFlexOption<bool, __LINE__> verletNeighborListSortingEnabled{
+    false,
+    "verlet-neighbor-list-sorting-enabled",
+    true,
+    "Sort every Verlet neighbor list after construction. AoS lists are sorted by particle address; SoA lists are "
+    "sorted by SoA index."};
+
   MDFlexOption<std::string, __LINE__> verletParticleSortingResolution{
       "cell", "verlet-particle-sorting-resolution", true,
       "Resolution for global particle sorting: block, cell, particle."};

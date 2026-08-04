@@ -238,6 +238,7 @@ std::string MDFlexConfig::to_string() const {
   printOption(verletRebuildFrequency);
   printOption(verletSkinRadius);
   printOption(verletParticleSortingEnabled);
+  printOption(verletNeighborListSortingEnabled);
   printOption(verletParticleSortingResolution);
   printOption(verletParticleSortingOrder);
   printOption(verletParticleSortingBlockSize);

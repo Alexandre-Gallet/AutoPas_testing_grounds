@@ -4,7 +4,7 @@ verlet-rebuild-frequency         :  10
 verlet-skin-radius               :  1.0
 verlet-cluster-size              :  4
 selector-strategy                :  Fastest-Absolute-Value
-data-layout                      :  [SoA] # using AoS effects the iteration over particles in base Verlet List implementation
+data-layout                      :  [AoS] # using AoS effects the iteration over particles in base Verlet List implementation
 traversal                        :  [vl_list_iteration] # Please see AllOptions.yaml for a comprehensive list of traversals
 tuning-strategies                :  []
 tuning-interval                  :  2500
@@ -14,9 +14,9 @@ functor                          :  Lennard-Jones AVX
 newton3                          :  [disabled]
 
 verlet-particle-sorting-enabled   :  true
-verlet-neighbor-list-sorting-enabled: false
+verlet-neighbor-list-sorting-enabled: true
 verlet-particle-sorting-resolution:  cell
-verlet-particle-sorting-order     :  hilbert
+verlet-particle-sorting-order     :  morton
 verlet-particle-sorting-block-size: [4, 4, 4]
 
 cutoff                           :  3

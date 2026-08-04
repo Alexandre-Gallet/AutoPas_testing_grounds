@@ -75,6 +75,7 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
               const double skin, const BuildVerletListType buildVerletListType = BuildVerletListType::VerletSoA,
               const double cellSizeFactor = 1.0, const VerletParticleSortingConfig &verletParticleSortingConfig = {})
       : BackendType(boxMin, boxMax, cutoff, skin, cellSizeFactor, verletParticleSortingConfig),
+        _neighborListSortingEnabled(verletParticleSortingConfig.neighborListSortingEnabled),
         _buildVerletListType(buildVerletListType) {}
 
   /**
@@ -111,8 +112,7 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
    */
   void rebuildNeighborLists(TraversalInterface *traversal) override {
     this->_verletBuiltNewton3 = traversal->getUseNewton3();
-    this->updateVerletListsAoS(traversal->getUseNewton3());
-    // the neighbor list is now valid
+    this->updateVerletListsAoS(traversal->getUseNewton3(), traversal->getDataLayout());    // the neighbor list is now valid
     this->_neighborListIsValid.store(true, std::memory_order_relaxed);
 
     if (not _soaListIsValid and traversal->getDataLayout() == DataLayoutOption::soa) {
@@ -150,7 +150,7 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
    * Update the verlet lists for AoS usage
    * @param useNewton3
    */
-  virtual void updateVerletListsAoS(bool useNewton3) {
+  virtual void updateVerletListsAoS(bool useNewton3, DataLayoutOption forceDataLayout) {
     generateAoSNeighborLists();
     typename VerletListHelpers<Particle_T>::VerletListGeneratorFunctor f(_aosNeighborLists,
                                                                          this->getCutoff() + this->getVerletSkin());
@@ -170,6 +170,11 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
             this->_linkedCells.getCellBlock().getCellsPerDimensionWithHalo(), f, this->getInteractionLength(),
             this->_linkedCells.getCellBlock().getCellLength(), dataLayout, useNewton3);
     this->_linkedCells.computeInteractions(&traversal);
+
+    if (_neighborListSortingEnabled and forceDataLayout == DataLayoutOption::aos) {
+      sortAoSNeighborListsByAddress();
+    }
+
 
     _soaListIsValid = false;
   }
@@ -286,20 +291,47 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
       }
     }
 
-    if (not _soaParticleOrder.empty()) {
-      // The explicit SoA particle order makes neighboring indices spatially meaningful.
-      // Sorting each neighbor vector by index keeps the interaction set unchanged, but
-      // makes the neighbor access order more sequential in the SoA arrays.
-      for (auto &neighborList : _soaNeighborLists) {
-        std::sort(neighborList.begin(), neighborList.end());
-      }
+    if (_neighborListSortingEnabled) {
+      sortSoANeighborListsByIndex();
     }
+
 
     AutoPasLog(DEBUG,
                "VerletLists::generateSoAListFromAoSVerletLists: average verlet list "
                "size is {}",
                static_cast<double>(accumulatedListSize) / _aosNeighborLists.size());
     _soaListIsValid = true;
+  }
+
+  /**
+  * Sort every AoS neighbor vector by particle address.
+  *
+  * The neighbor list remains semantically identical: every center particle keeps
+  * the same neighbors, only the order inside the vector changes. For
+  * LinkedCellsReferences, after global particle sorting, pointer address order
+  * approximates storage order in the global ParticleVector.
+  */
+  void sortAoSNeighborListsByAddress() {
+    for (auto &[centerParticle, neighborList] : _aosNeighborLists) {
+      std::sort(neighborList.begin(), neighborList.end());
+    }
+    //TODO: Remove this sanity check
+    AutoPasLog(INFO, "VerletLists AoS neighbor-list sorting executed");
+  }
+
+  /**
+   * Sort every SoA neighbor vector by SoA index.
+   *
+   * The neighbor list remains semantically identical: every center particle keeps
+   * the same neighbor indices, only their access order changes. Sorted indices
+   * make accesses into the SoA arrays more sequential.
+   */
+  void sortSoANeighborListsByIndex() {
+    for (auto &neighborList : _soaNeighborLists) {
+      std::sort(neighborList.begin(), neighborList.end());
+    }
+    //TODO: Remove this sanity check
+    AutoPasLog(INFO, "VerletLists SoA neighbor-list sorting executed");
   }
 
  private:
@@ -332,6 +364,14 @@ class VerletLists : public LinkedCellsBackend_T<Particle_T> {
    * For every Particle, identified via the _particlePtr2indexMap, a vector of its neighbor indices is stored.
    */
   std::vector<std::vector<size_t, AlignedAllocator<size_t>>> _soaNeighborLists;
+
+  /**
+  * If true, each individual Verlet neighbor list is sorted after construction.
+  *
+  * AoS traversals sort pointer lists by particle address.
+  * SoA traversals sort index lists by SoA index.
+  */
+  bool _neighborListSortingEnabled{false};
 
   /**
    * Shows if the SoA neighbor list is currently valid.

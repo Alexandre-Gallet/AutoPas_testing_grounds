@@ -14,7 +14,7 @@ functor                          :  Lennard-Jones AVX
 newton3                          :  [disabled]
 
 verlet-particle-sorting-enabled   :  true
-verlet-neighbor-list-sorting-enabled: false
+verlet-neighbor-list-sorting-enabled: true
 verlet-particle-sorting-resolution:  cell
 verlet-particle-sorting-order     :  hilbert
 verlet-particle-sorting-block-size: [4, 4, 4]

@@ -217,6 +217,7 @@ Simulation::Simulation(const MDFlexConfig &configuration,
 
   autopas::VerletParticleSortingConfig sortingConfig{};
   sortingConfig.enabled = _configuration.verletParticleSortingEnabled.value;
+  sortingConfig.neighborListSortingEnabled = _configuration.verletNeighborListSortingEnabled.value;
   sortingConfig.resolution = parseResolution(_configuration.verletParticleSortingResolution.value);
   sortingConfig.order = parseOrder(_configuration.verletParticleSortingOrder.value);
   sortingConfig.blockSize = _configuration.verletParticleSortingBlockSize.value;

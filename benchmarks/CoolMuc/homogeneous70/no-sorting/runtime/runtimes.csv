@@ -1,4 +1,0 @@
-run_id,wall_clock_s,output_file
-1,95.928,benchmarks/CoolMuc/homogeneous70/no-sorting/runtime/run_1.out
-2,104.768,benchmarks/CoolMuc/homogeneous70/no-sorting/runtime/run_2.out
-3,96.820,benchmarks/CoolMuc/homogeneous70/no-sorting/runtime/run_3.out

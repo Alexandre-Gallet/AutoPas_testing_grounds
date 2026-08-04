@@ -39,6 +39,10 @@ sorting-threshold                    :  8
 # Global particle sorting for VerletListsReferences.
 # Currently only config plumbing; actual sorting behavior is implemented separately.
 verlet-particle-sorting-enabled      :  false
+# Sort each individual Verlet neighbor list after construction.
+# AoS neighbor lists are sorted by particle address.
+# SoA neighbor lists are sorted by SoA index.
+verlet-neighbor-list-sorting-enabled :  false
 # Spatial resolution used to build sorting keys.
 # Possible values: block, cell, particle
 verlet-particle-sorting-resolution   :  cell

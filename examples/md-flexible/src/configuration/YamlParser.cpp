@@ -336,6 +336,11 @@ bool MDFlexParser::YamlParser::parseYamlFile(MDFlexConfig &config) {
         description = config.verletParticleSortingEnabled.description;
         config.verletParticleSortingEnabled.value = node[key].as<bool>();
 
+      } else if (key == config.verletNeighborListSortingEnabled.name) {
+        expected = "Boolean";
+        description = config.verletNeighborListSortingEnabled.description;
+        config.verletNeighborListSortingEnabled.value = node[key].as<bool>();
+
       } else if (key == config.verletParticleSortingResolution.name) {
         expected = "One of: block, cell, particle";
         description = config.verletParticleSortingResolution.description;

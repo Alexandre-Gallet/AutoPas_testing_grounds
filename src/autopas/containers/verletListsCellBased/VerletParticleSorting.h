@@ -63,6 +63,15 @@ struct VerletParticleSortingConfig {
   bool enabled{false};
 
   /**
+    * Enables sorting of each individual Verlet neighbor list after construction.
+    *
+    * This does not move particles and does not change the interaction set. It
+    * only changes the order in which a center particle visits its neighbors.
+    */
+  bool neighborListSortingEnabled{false};
+
+
+  /**
    * Spatial resolution used to generate sorting keys.
    */
   VerletParticleSortingResolution resolution{VerletParticleSortingResolution::cell};
@@ -84,8 +93,8 @@ struct VerletParticleSortingConfig {
    * changes to the config should be detectable.
    */
   bool operator==(const VerletParticleSortingConfig &other) const {
-    return enabled == other.enabled and resolution == other.resolution and order == other.order and
-           blockSize == other.blockSize;
+    return enabled == other.enabled and neighborListSortingEnabled == other.neighborListSortingEnabled and
+        resolution == other.resolution and order == other.order and blockSize == other.blockSize;
   }
 
   bool operator!=(const VerletParticleSortingConfig &other) const { return not(*this == other); }

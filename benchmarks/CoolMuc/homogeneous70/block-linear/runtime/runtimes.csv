@@ -1,4 +1,0 @@
-run_id,wall_clock_s,output_file
-1,83.547,benchmarks/CoolMuc/homogeneous70/block-linear/runtime/run_1.out
-2,88.773,benchmarks/CoolMuc/homogeneous70/block-linear/runtime/run_2.out
-3,83.543,benchmarks/CoolMuc/homogeneous70/block-linear/runtime/run_3.out
