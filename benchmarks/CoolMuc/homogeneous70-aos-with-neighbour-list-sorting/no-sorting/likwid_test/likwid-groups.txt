@@ -1,0 +1,21 @@
+    Group name	Description
+--------------------------------------------------------------------------------
+        MEM_DP	Overview of arithmetic and main memory performance
+           UPI	UPI data traffic
+           TMA	Top down cycle allocation
+      FLOPS_SP	Single Precision MFLOP/s
+        BRANCH	Branch prediction miss rate/ratio
+     FLOPS_AVX	Packed AVX MFLOP/s
+   MEM_FREERUN	Memory bandwidth in MBytes/s
+       L2CACHE	L2 cache miss rate/ratio
+            L3	L3 cache bandwidth in MBytes/s
+        ENERGY	Power and Energy consumption
+        MEM_SP	Overview of arithmetic and main memory performance
+CYCLE_ACTIVITY	Cycle Activities
+           MEM	Memory bandwidth in MBytes/s
+          DATA	Load to store ratio
+            L2	L2 cache bandwidth in MBytes/s
+        DIVIDE	Divide unit information
+      FLOPS_DP	Double Precision MFLOP/s
+  CYCLE_STALLS	Cycle Activities (Stalls)
+         CLOCK	Power and Energy consumption
