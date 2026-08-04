@@ -86,7 +86,7 @@ TEST_P(ContainerSwapTest, testContainerConversion) {
 
   // Helper to add particles to the container.
   auto addParticlesToContainer = [&](auto &containerToFill) {
-    auto getPossible1DPositions = [&](double min, double max) -> auto{
+    auto getPossible1DPositions = [&](double min, double max) -> auto {
       return std::array<double, 6>{min - cutoff - verletSkin,       min - cutoff, min, max, max + cutoff - 1e-3,
                                    max + cutoff + verletSkin - 1e-3};
     };
@@ -190,6 +190,9 @@ std::vector<autopas::Configuration> containerConfigs = {
      autopas::LoadEstimatorOption::none, autopas::DataLayoutOption::aos, autopas::Newton3Option::disabled,
      autopas::InteractionTypeOption::pairwise},
     {autopas::ContainerOption::verletLists, 1, autopas::TraversalOption::vl_list_iteration,
+     autopas::LoadEstimatorOption::none, autopas::DataLayoutOption::aos, autopas::Newton3Option::disabled,
+     autopas::InteractionTypeOption::pairwise},
+    {autopas::ContainerOption::verletListsReferences, 1, autopas::TraversalOption::vl_list_iteration,
      autopas::LoadEstimatorOption::none, autopas::DataLayoutOption::aos, autopas::Newton3Option::disabled,
      autopas::InteractionTypeOption::pairwise},
     {autopas::ContainerOption::varVerletListsAsBuild, 1, autopas::TraversalOption::vvl_as_built,

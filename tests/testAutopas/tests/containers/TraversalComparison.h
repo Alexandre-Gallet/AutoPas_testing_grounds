@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include "AutoPasTestBase.h"
+#include "autopas/containers/verletListsCellBased/VerletParticleSorting.h"
 #include "autopas/tuning/Configuration.h"
 #include "autopasTools/generators/UniformGenerator.h"
 #include "molecularDynamicsLibrary/AxilrodTellerMutoFunctor.h"
@@ -77,13 +78,14 @@ class TraversalComparison : public AutoPasTestBase, public ::testing::WithParamI
                                          autopas::InteractionTypeOption interactionT);
 
   template <bool globals>
-  static std::tuple<std::vector<std::array<double, 3>>, Globals> calculateForces(autopas::Configuration config,
-                                                                                 mykey_t key, bool useSorting);
+  static std::tuple<std::vector<std::array<double, 3>>, Globals> calculateForces(
+      autopas::Configuration config, mykey_t key, bool useSorting,
+      autopas::VerletParticleSortingConfig verletParticleSortingConfig = {});
 
   template <typename Functor, bool globals>
-  static std::tuple<std::vector<std::array<double, 3>>, Globals> calculateForcesImpl(Functor functor,
-                                                                                     autopas::Configuration config,
-                                                                                     mykey_t key, bool useSorting);
+  static std::tuple<std::vector<std::array<double, 3>>, Globals> calculateForcesImpl(
+      Functor functor, autopas::Configuration config, mykey_t key, bool useSorting,
+      autopas::VerletParticleSortingConfig verletParticleSortingConfig = {});
 
   static constexpr std::array<double, 3> _boxMin{0, 0, 0};
   static constexpr double _cutoff{1.};

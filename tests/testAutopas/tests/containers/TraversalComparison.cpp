@@ -92,7 +92,8 @@ void TraversalComparison::markSomeParticlesAsDeleted(ContainerT &container, size
 
 template <bool globals>
 std::tuple<std::vector<std::array<double, 3>>, TraversalComparison::Globals> TraversalComparison::calculateForces(
-    autopas::Configuration config, mykey_t key, bool useSorting) {
+    autopas::Configuration config, mykey_t key, bool useSorting,
+    autopas::VerletParticleSortingConfig verletParticleSortingConfig) {
   auto [numParticles, numHaloParticles, boxMax, doSlightShift, particleDeletionPosition, _ /*globals*/,
         interactionType] = key;
   std::vector<std::array<double, 3>> calculatedForces;
@@ -104,14 +105,14 @@ std::tuple<std::vector<std::array<double, 3>>, TraversalComparison::Globals> Tra
         functor{_cutoff};
     functor.setParticleProperties(_eps * 24, _sig * _sig);
     std::tie(calculatedForces, calculatedGlobals) =
-        calculateForcesImpl<decltype(functor), globals>(functor, config, key, useSorting);
+        calculateForcesImpl<decltype(functor), globals>(functor, config, key, useSorting, verletParticleSortingConfig);
   } else if (interactionType == autopas::InteractionTypeOption::triwise) {
     mdLib::AxilrodTellerMutoFunctor<Molecule, false /*useMixing*/, autopas::FunctorN3Modes::Both,
                                     globals /*calculateGlobals*/>
         functor{_cutoff};
     functor.setParticleProperties(_nu);
     std::tie(calculatedForces, calculatedGlobals) =
-        calculateForcesImpl<decltype(functor), globals>(functor, config, key, useSorting);
+        calculateForcesImpl<decltype(functor), globals>(functor, config, key, useSorting, verletParticleSortingConfig);
   }
 
   return {calculatedForces, calculatedGlobals};
@@ -133,7 +134,8 @@ std::tuple<std::vector<std::array<double, 3>>, TraversalComparison::Globals> Tra
  */
 template <typename Functor, bool globals>
 std::tuple<std::vector<std::array<double, 3>>, TraversalComparison::Globals> TraversalComparison::calculateForcesImpl(
-    Functor functor, autopas::Configuration config, mykey_t key, bool useSorting) {
+    Functor functor, autopas::Configuration config, mykey_t key, bool useSorting,
+    autopas::VerletParticleSortingConfig verletParticleSortingConfig) {
   auto [numParticles, numHaloParticles, boxMax, doSlightShift, particleDeletionPosition, _ /*globals*/,
         interactionType] = key;
 
@@ -141,8 +143,15 @@ std::tuple<std::vector<std::array<double, 3>>, TraversalComparison::Globals> Tra
   constexpr double skin = _cutoff * 0.1;
   constexpr unsigned int rebuildFrequency = 1;
   const size_t sortingThreshold = useSorting ? 5 : std::numeric_limits<size_t>::max();
-  const auto containerInfo = autopas::ContainerSelectorInfo{_boxMin, boxMax, _cutoff,          config.cellSizeFactor,
-                                                            skin,    32,     sortingThreshold, config.loadEstimator};
+  const auto containerInfo = autopas::ContainerSelectorInfo{_boxMin,
+                                                            boxMax,
+                                                            _cutoff,
+                                                            config.cellSizeFactor,
+                                                            skin,
+                                                            32,
+                                                            sortingThreshold,
+                                                            config.loadEstimator,
+                                                            verletParticleSortingConfig};
   auto container = autopas::ContainerSelector<Molecule>::generateContainer(config.container, containerInfo);
 
   autopasTools::generators::UniformGenerator::fillWithParticles(*container, Molecule({0., 0., 0.}, {0., 0., 0.}, 0),
@@ -277,6 +286,90 @@ TEST_P(TraversalComparison, traversalTest) {
     EXPECT_NE(calculatedGlobals.virial, 0);
     EXPECT_NEAR(calculatedGlobals.virial, globalValuesReferenceRef.virial,
                 std::abs(rel_err_tolerance_globals * globalValuesReferenceRef.virial));
+  }
+}
+
+/**
+ * Tests the thesis-specific VerletListsReferences particle sorting variants against the same linked-cells reference
+ * used by the generated traversal comparison tests.
+ *
+ * The generated TraversalComparison matrix only passes the default ContainerSelectorInfo, which means
+ * VerletParticleSortingConfig::enabled stays false. This dedicated regression test explicitly enables each sorting
+ * resolution/order combination and verifies that changing particle storage order and neighbor-list order does not
+ * change the computed forces or global values.
+ */
+TEST_F(TraversalComparison, verletListsReferencesParticleSortingVariantsMatchReference) {
+  constexpr autopas::InteractionTypeOption interactionType{autopas::InteractionTypeOption::pairwise};
+  const mykey_t key{100, 200, {3., 3., 3.}, false, DeletionPosition::never, true, interactionType};
+
+  generateReference<true>(key);
+
+  constexpr double relErrTolerance = 1.0e-10;
+  constexpr double relErrToleranceGlobals = 1.0e-10;
+
+  const std::vector<autopas::VerletParticleSortingResolution> resolutions{
+      autopas::VerletParticleSortingResolution::block,
+      autopas::VerletParticleSortingResolution::cell,
+      autopas::VerletParticleSortingResolution::particle,
+  };
+
+  const std::vector<autopas::VerletParticleSortingOrder> orders{
+      autopas::VerletParticleSortingOrder::linear,
+      autopas::VerletParticleSortingOrder::morton,
+      autopas::VerletParticleSortingOrder::hilbert,
+  };
+
+  const std::vector<autopas::DataLayoutOption> dataLayouts{
+      autopas::DataLayoutOption::aos,
+      autopas::DataLayoutOption::soa,
+  };
+
+  for (const auto dataLayout : dataLayouts) {
+    const autopas::Configuration runConfig{
+        autopas::ContainerOption::verletListsReferences,
+        1.0,
+        autopas::TraversalOption::vl_list_iteration,
+        autopas::LoadEstimatorOption::none,
+        dataLayout,
+        autopas::Newton3Option::disabled,
+        interactionType,
+    };
+
+    for (const bool neighborListSortingEnabled : {false, true}) {
+      for (const auto resolution : resolutions) {
+        for (const auto order : orders) {
+          autopas::VerletParticleSortingConfig sortingConfig{};
+          sortingConfig.enabled = true;
+          sortingConfig.neighborListSortingEnabled = neighborListSortingEnabled;
+          sortingConfig.resolution = resolution;
+          sortingConfig.order = order;
+          sortingConfig.blockSize = {4, 4, 4};
+
+          SCOPED_TRACE("dataLayout=" + dataLayout.to_string() + ", resolution=" + autopas::to_string(resolution) +
+                       ", order=" + autopas::to_string(order) +
+                       ", neighborListSortingEnabled=" + std::to_string(neighborListSortingEnabled));
+
+          const auto [calculatedForces, calculatedGlobals] = calculateForces<true>(runConfig, key, true, sortingConfig);
+
+          ASSERT_FALSE(calculatedForces.empty());
+
+          for (size_t i = 0; i < calculatedForces.size(); ++i) {
+            for (unsigned int d = 0; d < 3; ++d) {
+              const double calculatedForce = calculatedForces[i][d];
+              const double referenceForce = _forcesReference[key][i][d];
+              EXPECT_NEAR(calculatedForce, referenceForce, std::fabs(calculatedForce * relErrTolerance))
+                  << "Dim: " << d << " Particle id: " << i;
+            }
+          }
+
+          const auto &globalValuesReference = _globalValuesReference[key];
+          EXPECT_NEAR(calculatedGlobals.upot, globalValuesReference.upot,
+                      std::abs(relErrToleranceGlobals * globalValuesReference.upot));
+          EXPECT_NEAR(calculatedGlobals.virial, globalValuesReference.virial,
+                      std::abs(relErrToleranceGlobals * globalValuesReference.virial));
+        }
+      }
+    }
   }
 }
 

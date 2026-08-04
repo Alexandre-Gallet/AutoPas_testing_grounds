@@ -17,7 +17,7 @@
 template <class Particle_T>
 class MockPairwiseFunctor : public autopas::PairwiseFunctor<Particle_T, MockPairwiseFunctor<Particle_T>> {
  public:
-  MockPairwiseFunctor() : autopas::PairwiseFunctor<Particle_T, MockPairwiseFunctor<Particle_T>>(0.){};
+  MockPairwiseFunctor() : autopas::PairwiseFunctor<Particle_T, MockPairwiseFunctor<Particle_T>>(0.) {};
   // virtual void AoSFunctor(Particle_T &i, Particle_T &j, bool newton3)
   MOCK_METHOD(void, AoSFunctor, (Particle_T & i, Particle_T &j, bool newton3), (override));
 
@@ -46,6 +46,9 @@ class MockPairwiseFunctor : public autopas::PairwiseFunctor<Particle_T, MockPair
               (autopas::ReferenceParticleCell<Particle_T> & cell, autopas::SoA<typename Particle_T::SoAArraysType> &soa,
                size_t offset, bool skipSoAResize));
 
+  MOCK_METHOD(void, SoALoader,
+              (std::vector<Particle_T *> & particleOrder, autopas::SoA<typename Particle_T::SoAArraysType> &soa));
+
   MOCK_METHOD(void, SoAExtractor,
               (autopas::FullParticleCell<Particle_T> & cell, autopas::SoA<typename Particle_T::SoAArraysType> &soa,
                size_t offset));
@@ -53,6 +56,9 @@ class MockPairwiseFunctor : public autopas::PairwiseFunctor<Particle_T, MockPair
   MOCK_METHOD(void, SoAExtractor,
               (autopas::ReferenceParticleCell<Particle_T> & cell, autopas::SoA<typename Particle_T::SoAArraysType> &soa,
                size_t offset));
+
+  MOCK_METHOD(void, SoAExtractor,
+              (std::vector<Particle_T *> & particleOrder, autopas::SoA<typename Particle_T::SoAArraysType> &soa));
 
   // virtual bool allowsNewton3() { return true; }
   MOCK_METHOD(bool, allowsNewton3, (), (override));
