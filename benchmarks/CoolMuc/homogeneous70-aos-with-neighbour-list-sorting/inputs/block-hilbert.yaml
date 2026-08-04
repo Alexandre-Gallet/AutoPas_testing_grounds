@@ -55,4 +55,5 @@ Objects:
 #vtk-write-frequency              :  10
 #vtk-output-folder                :  vtkOutputFolder
 no-end-config                    :  true
-log-level                        :  info    # log level info will have minimal effect on benchmarking
+no-progress-bar:                 :  true
+log-level                        :  warn    # log level info will have minimal effect on benchmarking
