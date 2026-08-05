@@ -1,0 +1,135 @@
+INFO: You are running LIKWID in a cpuset with 2 CPUs. Taking given IDs as logical ID in cpuset
+--------------------------------------------------------------------------------
+CPU name:	Intel(R) Xeon(R) Platinum 8380 CPU @ 2.30GHz
+CPU type:	Intel Icelake SP processor
+CPU clock:	2.29 GHz
+--------------------------------------------------------------------------------
+WARNING: Simulation box increased due to particles being too close to the boundaries.
+# Running single-site MD simulation.
+
+container                        :  [VerletListsReferences]
+verlet-rebuild-frequency         :  10
+verlet-skin-radius               :  1
+verlet-particle-sorting-enabled  :  false
+verlet-neighbor-list-sorting-enabled:  true
+verlet-particle-sorting-resolution:  cell
+verlet-particle-sorting-order    :  linear
+verlet-particle-sorting-block-size:  [4, 4, 4]
+tuning-strategies                :  []
+tuning-metric                    :  time
+tuning-interval                  :  2500
+tuning-samples                   :  3
+early-stopping-factor            :  inf
+use-LOESS-smoothening            :  false
+PairwiseInteraction:             
+  functor                        :  Lennard-Jones (12-6) AVX intrinsics
+  traversal                      :  [vl_list_iteration]
+  data-layout                    :  [AoS]
+  newton3                        :  [disabled]
+vectorization-pattern            :  [1xVectorLength, 2xVectorLengthDiv2, VectorLengthDiv2x2, VectorLengthx1]
+cutoff                           :  3
+box-min                          :  [-0.6, -0.6, -0.6]
+box-max                          :  [83.4, 83.4, 83.4]
+cell-size                        :  [1]
+deltaT                           :  0.0005
+pause-simulation-during-tuning   :  false
+sorting-threshold                :  8
+iterations                       :  50
+boundary-type                    :  [reflective, reflective, reflective]
+Sites:                           
+  0:
+    epsilon                      :  1
+    sigma                        :  1
+    nu                           :  0
+    mass                         :  1
+Objects:                         
+  CubeGrid:
+    0:  
+      particles-per-dimension    :  [70, 70, 70]
+      particle-spacing           :  1.2
+      bottomLeftCorner           :  [0, 0, 0]
+      velocity                   :  [0, 0, 0]
+      particle-type-id           :  0
+use-tuning-logger                :  false
+output-suffix                    :  
+log-level                        :  warning
+no-end-config                    :  true
+no-progress-bar                  :  true
+load-balancer                    :  InvertedPressure
+load-balancing-interval          :  100
+subdivide-dimension              :  [true, true, true]
+energy-sensor                    :  likwid
+
+
+Using 1 Threads
+MPI is disabled.
+Number of particles at initialization on rank 0: 343000
+Number of particles at initialization globally : 343000
+
+
+Total number of particles at the end of Simulation: 343000
+Owned: 343000
+Halo : 0
+Measurements:
+Total accumulated                  : 76285415706 ns (76.285s)
+  Initialization                   :   108149929 ns ( 0.108s) =  0.142%
+  Simulate                         : 76177264351 ns (76.177s) = 99.858%
+    PositionUpdate                 :   405804897 ns ( 0.406s) =  0.533%
+    UpdateContainer                :   653871385 ns ( 0.654s) =  0.858%
+    Boundaries                     :      637011 ns ( 0.001s) =  0.001%
+      HaloParticleExchange         :      604198 ns ( 0.001s) =  0.246%
+      ReflectParticlesAtBoundaries :   245233312 ns ( 0.245s) = 99.741%
+      MigratingParticleExchange    :       32813 ns ( 0.000s) =  0.013%
+    ForceUpdateTotal               : 74512755254 ns (74.513s) = 97.815%
+      ForceUpdateNonTuning         : 74512715836 ns (74.513s) =100.000%
+    VelocityUpdate                 :   358639288 ns ( 0.359s) =  0.471%
+    LoadBalancing                  :       92413 ns ( 0.000s) =  0.000%
+  One iteration                  :  1523545287 ns ( 1.524s) =  1.997%
+Total wall-clock time              : 76285415706 ns (76.285s) =100.000%
+
+Tuning iterations                  : 0 / 50 = 0%
+MFUPs/sec                          : 0.230162
+Mean Rebuild Frequency               : 10
+Total Energy Consumed (in Joules)    : 0
+--------------------------------------------------------------------------------
+Group 1: MEM
++-----------------------+---------+--------------+
+|         Event         | Counter |  HWThread 20 |
++-----------------------+---------+--------------+
+|   INSTR_RETIRED_ANY   |  FIXC0  | 330522549618 |
+| CPU_CLK_UNHALTED_CORE |  FIXC1  | 173017074050 |
+|  CPU_CLK_UNHALTED_REF |  FIXC2  | 173017134760 |
+|     TOPDOWN_SLOTS     |  FIXC3  | 865035464830 |
+|      CAS_COUNT_RD     | MBOX0C0 |   8862677540 |
+|      CAS_COUNT_WR     | MBOX0C1 |   7550732697 |
+|      CAS_COUNT_RD     | MBOX1C0 |   8860548336 |
+|      CAS_COUNT_WR     | MBOX1C1 |   7547026889 |
+|      CAS_COUNT_RD     | MBOX2C0 |            0 |
+|      CAS_COUNT_WR     | MBOX2C1 |            0 |
+|      CAS_COUNT_RD     | MBOX3C0 |   8853172740 |
+|      CAS_COUNT_WR     | MBOX3C1 |   7552834615 |
+|      CAS_COUNT_RD     | MBOX4C0 |   8854792937 |
+|      CAS_COUNT_WR     | MBOX4C1 |   7551414894 |
+|      CAS_COUNT_RD     | MBOX5C0 |            0 |
+|      CAS_COUNT_WR     | MBOX5C1 |            0 |
+|      CAS_COUNT_RD     | MBOX6C0 |   1543901541 |
+|      CAS_COUNT_WR     | MBOX6C1 |    798417224 |
+|      CAS_COUNT_RD     | MBOX7C0 |   1545216103 |
+|      CAS_COUNT_WR     | MBOX7C1 |    799451657 |
++-----------------------+---------+--------------+
+
++-----------------------------------+-------------+
+|               Metric              | HWThread 20 |
++-----------------------------------+-------------+
+|        Runtime (RDTSC) [s]        |     76.4497 |
+|        Runtime unhalted [s]       |     75.4024 |
+|            Clock [MHz]            |   2294.5821 |
+|                CPI                |      0.5235 |
+|  Memory read bandwidth [MBytes/s] |  32247.3294 |
+|  Memory read data volume [GBytes] |   2465.2998 |
+| Memory write bandwidth [MBytes/s] |  26621.3112 |
+| Memory write data volume [GBytes] |   2035.1922 |
+|    Memory bandwidth [MBytes/s]    |  58868.6406 |
+|    Memory data volume [GBytes]    |   4500.4920 |
++-----------------------------------+-------------+
+
