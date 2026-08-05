@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,90.812,benchmarks/CoolMuc/homogeneous70-aos-with-neighbour-list-sorting/no-sorting/runtime/run_1.out
+2,90.496,benchmarks/CoolMuc/homogeneous70-aos-with-neighbour-list-sorting/no-sorting/runtime/run_2.out
+3,83.447,benchmarks/CoolMuc/homogeneous70-aos-with-neighbour-list-sorting/no-sorting/runtime/run_3.out

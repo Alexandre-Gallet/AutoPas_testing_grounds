@@ -1,0 +1,125 @@
+INFO: You are running LIKWID in a cpuset with 2 CPUs. Taking given IDs as logical ID in cpuset
+--------------------------------------------------------------------------------
+CPU name:	Intel(R) Xeon(R) Platinum 8380 CPU @ 2.30GHz
+CPU type:	Intel Icelake SP processor
+CPU clock:	2.29 GHz
+--------------------------------------------------------------------------------
+WARNING: Simulation box increased due to particles being too close to the boundaries.
+# Running single-site MD simulation.
+
+container                        :  [VerletListsReferences]
+verlet-rebuild-frequency         :  10
+verlet-skin-radius               :  1
+verlet-particle-sorting-enabled  :  true
+verlet-neighbor-list-sorting-enabled:  true
+verlet-particle-sorting-resolution:  cell
+verlet-particle-sorting-order    :  hilbert
+verlet-particle-sorting-block-size:  [4, 4, 4]
+tuning-strategies                :  []
+tuning-metric                    :  time
+tuning-interval                  :  2500
+tuning-samples                   :  3
+early-stopping-factor            :  inf
+use-LOESS-smoothening            :  false
+PairwiseInteraction:             
+  functor                        :  Lennard-Jones (12-6) AVX intrinsics
+  traversal                      :  [vl_list_iteration]
+  data-layout                    :  [AoS]
+  newton3                        :  [disabled]
+vectorization-pattern            :  [1xVectorLength, 2xVectorLengthDiv2, VectorLengthDiv2x2, VectorLengthx1]
+cutoff                           :  3
+box-min                          :  [-0.6, -0.6, -0.6]
+box-max                          :  [83.4, 83.4, 83.4]
+cell-size                        :  [1]
+deltaT                           :  0.0005
+pause-simulation-during-tuning   :  false
+sorting-threshold                :  8
+iterations                       :  50
+boundary-type                    :  [reflective, reflective, reflective]
+Sites:                           
+  0:
+    epsilon                      :  1
+    sigma                        :  1
+    nu                           :  0
+    mass                         :  1
+Objects:                         
+  CubeGrid:
+    0:  
+      particles-per-dimension    :  [70, 70, 70]
+      particle-spacing           :  1.2
+      bottomLeftCorner           :  [0, 0, 0]
+      velocity                   :  [0, 0, 0]
+      particle-type-id           :  0
+use-tuning-logger                :  false
+output-suffix                    :  
+log-level                        :  warning
+no-end-config                    :  true
+no-progress-bar                  :  true
+load-balancer                    :  InvertedPressure
+load-balancing-interval          :  100
+subdivide-dimension              :  [true, true, true]
+energy-sensor                    :  likwid
+
+
+Using 1 Threads
+MPI is disabled.
+Number of particles at initialization on rank 0: 343000
+Number of particles at initialization globally : 343000
+
+
+Total number of particles at the end of Simulation: 343000
+Owned: 343000
+Halo : 0
+Measurements:
+Total accumulated                  : 97168528714 ns (97.169s)
+  Initialization                   :   109210716 ns ( 0.109s) =  0.112%
+  Simulate                         : 97059317013 ns (97.059s) = 99.888%
+    PositionUpdate                 :   551151750 ns ( 0.551s) =  0.568%
+    UpdateContainer                :  7418687646 ns ( 7.419s) =  7.643%
+    Boundaries                     :      785028 ns ( 0.001s) =  0.001%
+      HaloParticleExchange         :      760464 ns ( 0.001s) =  0.296%
+      ReflectParticlesAtBoundaries :   256454072 ns ( 0.256s) = 99.695%
+      MigratingParticleExchange    :       24564 ns ( 0.000s) =  0.010%
+    ForceUpdateTotal               : 88336858365 ns (88.337s) = 91.013%
+      ForceUpdateNonTuning         : 88336822359 ns (88.337s) =100.000%
+    VelocityUpdate                 :   495018549 ns ( 0.495s) =  0.510%
+    LoadBalancing                  :      134081 ns ( 0.000s) =  0.000%
+  One iteration                  :  1941186340 ns ( 1.941s) =  1.998%
+Total wall-clock time              : 97168528714 ns (97.169s) =100.000%
+
+Tuning iterations                  : 0 / 50 = 0%
+MFUPs/sec                          : 0.194143
+Mean Rebuild Frequency               : 10
+Total Energy Consumed (in Joules)    : 0
+--------------------------------------------------------------------------------
+Group 1: CYCLE_STALLS
++--------------------------------+---------+---------------+
+|              Event             | Counter |  HWThread 76  |
++--------------------------------+---------+---------------+
+|        INSTR_RETIRED_ANY       |  FIXC0  |  375847326917 |
+|      CPU_CLK_UNHALTED_CORE     |  FIXC1  |  220927604658 |
+|      CPU_CLK_UNHALTED_REF      |  FIXC2  |  220944368056 |
+|          TOPDOWN_SLOTS         |  FIXC3  | 1104608277405 |
+|  CYCLE_ACTIVITY_STALLS_L2_MISS |   PMC0  |   40140658701 |
+|  CYCLE_ACTIVITY_STALLS_MEM_ANY |   PMC1  |   51972400284 |
+| CYCLE_ACTIVITY_STALLS_L1D_MISS |   PMC2  |   46420512023 |
+|   CYCLE_ACTIVITY_STALLS_TOTAL  |   PMC3  |   63092329129 |
++--------------------------------+---------+---------------+
+
++----------------------------------------+-------------+
+|                 Metric                 | HWThread 76 |
++----------------------------------------+-------------+
+|           Runtime (RDTSC) [s]          |     97.3810 |
+|          Runtime unhalted [s]          |     96.2821 |
+|               Clock [MHz]              |   2294.4117 |
+|                   CPI                  |      0.5878 |
+|         Total execution stalls         | 63092329129 |
+|     Stalls caused by L1D misses [%]    |     73.5755 |
+|     Stalls caused by L2 misses [%]     |     63.6221 |
+|    Stalls caused by memory loads [%]   |     82.3751 |
+|        Execution stall rate [%]        |     28.5579 |
+|  Stalls caused by L1D misses rate [%]  |     21.0116 |
+|   Stalls caused by L2 misses rate [%]  |     18.1691 |
+| Stalls caused by memory loads rate [%] |     23.5246 |
++----------------------------------------+-------------+
+
