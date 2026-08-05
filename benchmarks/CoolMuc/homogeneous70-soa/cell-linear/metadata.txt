@@ -1,12 +1,12 @@
 ===== DATE =====
-Wed Aug  5 06:49:48 PM CEST 2026
+Wed Aug  5 11:21:50 PM CEST 2026
 
 ===== JOB =====
 job_name=autopas_likwid_scenario
-job_id=5375548
-array_job_id=5375525
+job_id=5376519
+array_job_id=5376519
 array_task_id=1
-node_list=cm4r07c01s01
+node_list=cm4r07c01s02
 submit_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 working_dir=/dss/dsshome1/0D/ge63duc3/AutoPas-thesis-alexandre-gallet
 cpus_per_task=1
@@ -53,7 +53,7 @@ Thread(s) per core:                   2
 Core(s) per socket:                   40
 Socket(s):                            2
 Stepping:                             6
-CPU(s) scaling MHz:                   71%
+CPU(s) scaling MHz:                   72%
 CPU max MHz:                          2300.0000
 CPU min MHz:                          800.0000
 BogoMIPS:                             4600.00
@@ -85,7 +85,7 @@ Vulnerability Tsx async abort:        Not affected
 ===== CPU BINDING =====
 SLURM_CPU_BIND=
 SLURM_CPU_BIND_LIST=
-pid 81618's current affinity list: 78,158
+pid 63635's current affinity list: 79,159
 
 ===== EXECUTABLE =====
 -rwxr-xr-x+ 1 ge63duc3 pr63so 120M Aug  4 23:28 ./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible

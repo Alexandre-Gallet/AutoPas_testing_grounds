@@ -1,10 +1,10 @@
 Hierarchy Level,Metric Name,Metric Value
-0,Elapsed Time,70.752627
-1,CPU Time,62.839266
-2,Effective Time,62.759238
-2,Spin Time,0.080028
+0,Elapsed Time,56.073866
+1,CPU Time,48.719511
+2,Effective Time,48.679518
+2,Spin Time,0.039993
 3,Imbalance or Serial Spinning,0.0
-3,Lock Contention,0.080028
+3,Lock Contention,0.039993
 3,Other,0.0
 2,Overhead Time,0.0
 3,Creation,0.0
@@ -16,41 +16,27 @@ Hierarchy Level,Metric Name,Metric Value
 1,Paused Time,0.0
 0,Top Hotspots,
 0,Function,Module,CPU Time,% of CPU Time(%)
-0,"mdLib::LJFunctorAVX<mdLib::MoleculeLJ, (bool)1, (bool)1, (autopas::FunctorN3Modes)2, (bool)0, (bool)0, (bool)1>::SoAFunctorVerletImpl<(bool)0>",md-flexible,10.063038,16.0
-0,autopas::VerletListHelpers<mdLib::MoleculeLJ>::VerletListGeneratorFunctor::SoAFunctorPair,md-flexible,8.734960,13.9
-0,_mm256_sub_pd,md-flexible,8.241810,13.1
-0,"std::unordered_map<mdLib::MoleculeLJ const*, unsigned long, std::hash<mdLib::MoleculeLJ const*>, std::equal_to<mdLib::MoleculeLJ const*>, std::allocator<std::pair<mdLib::MoleculeLJ const* const, unsigned long>>>::find",md-flexible,3.117774,5.0
-0,"std::vector<mdLib::MoleculeLJ*, std::allocator<mdLib::MoleculeLJ*>>::push_back",md-flexible,2.578932,4.1
-0,[Others],N/A,30.102752,47.9
-0,Effective Physical Core Utilization,0.8% (0.673 out of 80)
-1,Effective Logical Core Utilization,0.6% (0.992 out of 160)
+0,_mm256_sub_pd,md-flexible,10.113760,20.8
+0,autopas::VerletListHelpers<mdLib::MoleculeLJ>::VerletListGeneratorFunctor::SoAFunctorPair,md-flexible,5.606431,11.5
+0,"mdLib::LJFunctorAVX<mdLib::MoleculeLJ, (bool)1, (bool)1, (autopas::FunctorN3Modes)2, (bool)0, (bool)0, (bool)1>::SoAFunctorVerletImpl<(bool)0>",md-flexible,4.589793,9.4
+0,"std::unordered_map<mdLib::MoleculeLJ const*, unsigned long, std::hash<mdLib::MoleculeLJ const*>, std::equal_to<mdLib::MoleculeLJ const*>, std::allocator<std::pair<mdLib::MoleculeLJ const* const, unsigned long>>>::find",md-flexible,1.863937,3.8
+0,_ZN5mdLib12LJFunctorAVXINS_10MoleculeLJELb1ELb1ELN7autopas14FunctorN3ModesE2ELb0ELb0ELb1EE9SoAKernelILb0ELb0EEEvmDv4_xPKlRKDv4_dSB_SB_PKdSD_SD_PdSE_SE_PKmSG_RS9_SH_SH_PS9_SI_SI_SI_j,md-flexible,1.603983,3.3
+0,[Others],N/A,24.941607,51.2
+0,Effective Physical Core Utilization,1.2% (0.988 out of 80)
+1,Effective Logical Core Utilization,0.6% (0.995 out of 160)
 0,Collection and Platform Info,
 1,Application Command Line,./cmake-build-relwithdebinfo/examples/md-flexible/md-flexible "--yaml-filename" "benchmarks/CoolMuc/homogeneous70-soa/inputs/cell-linear.yaml" 
 1,Operating System,6.4.0-150600.23.25-default NAME="SLES" VERSION="15-SP6" VERSION_ID="15.6" PRETTY_NAME="SUSE Linux Enterprise Server 15 SP6" ID="sles" ID_LIKE="suse" ANSI_COLOR="0;32" CPE_NAME="cpe:/o:suse:sles:15:sp6" DOCUMENTATION_URL="https://documentation.suse.com/"
-1,Computer Name,cm4r07c01s01
-1,Result Size,6980258
-1,Collection start time,16:53:07 05/08/2026 UTC
-1,Collection stop time,16:54:17 05/08/2026 UTC
+1,Computer Name,cm4r07c01s02
+1,Result Size,6521911
+1,Collection start time,21:24:36 05/08/2026 UTC
+1,Collection stop time,21:25:32 05/08/2026 UTC
 1,Collector Type,"Driverless Perf per-process counting,User-mode sampling and tracing"
 1,CPU,
 2,Name,Intel(R) Xeon(R) Processor code named Icelake
-2,Frequency,2294609140
+2,Frequency,2294609132
 2,Logical CPU Count,160
 2,LLC size,62914560
 2,Cache Allocation Technology,
 3,Level 2 capability,not detected
 3,Level 3 capability,available
-Intel(R) VTune(TM) Profiler 2024.2.1 (build 628577) feedback tool
-Copyright (C) 2009 Intel Corporation. All rights reserved.
-
-Intel(R) VTune(TM) Profiler 2024.2.1; 628577 experienced an unexpected error.
-
-Please send a problem report: 
-amplxe-feedback --send-crash-report "/dss/lxclscratch/0D/ge63duc3/ge63duc3/amplxe-log-ge63duc3/2026-08-05-18-54-27-763004.vtune/crash_info.txt"
-
-Report data may be used to improve product stability. Our apologies for the inconvenience and thank you for your assistance.
-
-Exception: 0xb, Segmentation&nbsp;fault
-Module: libswip.so
-Collecting modules information...
-Collecting system information...
