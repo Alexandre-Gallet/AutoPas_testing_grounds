@@ -2,9 +2,58 @@
 \label{ch:discussion}
 
 \begin{itemize}
-    \item Explanation with likwid, advisor and benchmarking outputs
-    \item confirming locality improvement
-    \item cell, block and particle level sorting analysis
-\end{itemize}
+    \item Answering the research question
+    \begin{itemize}
+        \item Did global spatial sorting improve locality?
+        \item Did global spatial sorting improve runtime?
+        \item Under which variants did sorting help?
+    \end{itemize}
 
+    \item Locality versus overhead
+    \begin{itemize}
+        \item Cases where locality metrics improve but runtime does not.
+        \item Cases where runtime improves despite mixed locality metrics.
+        \item Sorting overhead amortization over rebuild frequency.
+    \end{itemize}
+
+    \item Resolution tradeoffs
+    \begin{itemize}
+        \item Cell: low overhead, coarse order.
+        \item Block: compromise between cell and particle.
+        \item Particle: fine order, high overhead.
+    \end{itemize}
+
+    \item Ordering tradeoffs
+    \begin{itemize}
+        \item Linear: cheap but simple.
+        \item Morton: moderate overhead and locality.
+        \item Hilbert: potentially best locality but expensive.
+    \end{itemize}
+
+    \item AoS and SoA interpretation
+    \begin{itemize}
+        \item AoS pointer traversal may hide global sorted order.
+        \item SoA makes index order explicit.
+        \item Neighbor-list sorting targets neighbor access order.
+    \end{itemize}
+
+    \item Measurement limitations
+    \begin{itemize}
+        \item Whole-run LIKWID.
+        \item Shared L3.
+        \item No direct L3 miss ratio.
+        \item Limited runtime repetitions depending on cluster time.
+        \item Single-thread focus.
+    \end{itemize}
+
+    \item Implementation limitations
+    \begin{itemize}
+        \item Comparison sort.
+        \item Repeated key generation.
+        \item Hilbert encoding cost.
+        \item No cached key array yet.
+        \item No radix sort yet.
+        \item No LIKWID marker regions yet.
+    \end{itemize}
+\end{itemize}
 

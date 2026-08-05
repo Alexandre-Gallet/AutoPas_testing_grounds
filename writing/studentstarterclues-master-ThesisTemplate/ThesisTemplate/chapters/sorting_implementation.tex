@@ -1,24 +1,95 @@
-\chapter{Sorting Implementation}
+\chapter{Spatial Sorting Implementation}
 \label{ch:sorting_implementation}
 
 \begin{itemize}
-    \item linkedcells-references implementation
+    \item Goal
     \begin{itemize}
-        \item global particle vector
-        \item updatecontainer
-        \item computerinteractions
+        \item Reorder global particle storage according to spatial position.
+        \item Improve cache locality during neighbor-list construction and force traversal.
+        \item Keep the simulation result unchanged.
     \end{itemize}
-    \item sorting-resolution
+
+    \item Sorting insertion point
     \begin{itemize}
-        \item cell resolution
-        \item block resolution
-        \item particle resolution
+        \item Sorting is applied during the container update / Verlet-list rebuild path.
+        \item Sorting does not happen every force iteration.
+        \item Benefit must amortize over iterations between rebuilds.
     \end{itemize}
-    \item sorting orders
+
+    \item Sorting resolutions
     \begin{itemize}
-        \item linear key
-        \item morton key
-        \item hilbert key
+        \item Cell resolution
+        \begin{itemize}
+            \item Particle position mapped to linked-cell coordinate.
+            \item Particles in the same cell receive the same coarse spatial coordinate.
+            \item Low overhead, coarse grouping.
+        \end{itemize}
+        \item Block resolution
+        \begin{itemize}
+            \item Cell coordinate mapped to block coordinate.
+            \item Multiple cells grouped into configurable blocks.
+            \item Coarser than cell resolution.
+            \item Intended to reduce sorting granularity and preserve larger spatial chunks.
+        \end{itemize}
+        \item Particle resolution
+        \begin{itemize}
+            \item Particle position quantized into an integer coordinate grid.
+            \item Fine-grained ordering inside cells.
+            \item Highest potential locality.
+            \item Highest key-generation sensitivity.
+        \end{itemize}
+    \end{itemize}
+
+    \item Sorting orders
+    \begin{itemize}
+        \item Linear
+        \begin{itemize}
+            \item Direct coordinate linearization.
+            \item Lowest overhead.
+            \item Weakest multidimensional locality.
+        \end{itemize}
+        \item Morton
+        \begin{itemize}
+            \item Bit-interleaved coordinate encoding.
+            \item Moderate overhead.
+            \item Better multidimensional locality.
+        \end{itemize}
+        \item Hilbert
+        \begin{itemize}
+            \item Hilbert curve encoding.
+            \item Strong locality properties.
+            \item Highest encoding overhead in the current implementation.
+        \end{itemize}
+    \end{itemize}
+
+    \item Sorting overhead
+    \begin{itemize}
+        \item Key generation cost.
+        \item Comparison-based sorting cost.
+        \item Reference rebuild after sorting.
+        \item Neighbor-list rebuild after sorting.
+        \item Particle-level and Hilbert variants are expected to be most expensive.
+    \end{itemize}
+
+    \item Sorted SoA traversal
+    \begin{itemize}
+        \item AoS traversal may not fully exploit global particle order.
+        \item SoA force traversal uses index-based particle order.
+        \item SoA buffer can be built in sorted global particle order.
+        \item This makes force traversal observe the sorted particle sequence.
+    \end{itemize}
+
+    \item Neighbor-list sorting
+    \begin{itemize}
+        \item Optional sorting of neighbor-list indices.
+        \item Intended to improve access order for neighbor particles.
+        \item Evaluated separately because it adds rebuild overhead.
+    \end{itemize}
+
+    \item Correctness validation
+    \begin{itemize}
+        \item Sorting must not change physical results.
+        \item Traversal comparison tests compare forces and global values against reference calculations.
+        \item Correctness validation can be described briefly here or in the benchmark methodology.
     \end{itemize}
 \end{itemize}
-

@@ -1,64 +1,87 @@
 \chapter{Background}
-\label{ch:Background}
+\label{ch:background}
 
 \begin{itemize}
-\item Molecular Dynamics
+    \item Molecular dynamics
     \begin{itemize}
-        \item Pairwise interactions
-        \item Lennard-Jones potential
-        \item Cutoff radius
+        \item Particle systems and time integration.
+        \item Pairwise force computation.
+        \item Lennard-Jones potential.
+        \item Cutoff radius and short-range interactions.
     \end{itemize}
 
-\item Verlet Lists
-\begin{itemize}
-    \item Purpose of Verlet lists
-    \item Verlet skin
-    \item Rebuild frequency
-    \item Neighbor-list construction
-    \item Force traversal
-\end{itemize}
-
-\item Linked Cells
-\begin{itemize}
-    \item Cell decomposition
-    \item Nearby-cell search
-    \item Relationship between linked cells and Verlet-list-references construction
-\end{itemize}
-
-\item Data Layouts
+    \item Verlet lists
     \begin{itemize}
-    \item Array of Structures
+        \item Motivation for neighbor lists.
+        \item Verlet radius as cutoff plus skin.
+        \item Rebuild frequency.
+        \item Force traversal between rebuilds.
+        \item Tradeoff between rebuild cost and larger neighbor lists.
+    \end{itemize}
+
+    \item Linked cells and neighbor search
+    \begin{itemize}
+        \item Domain decomposition into cells.
+        \item Candidate neighbor search through nearby cells.
+        \item Relationship between linked cells and Verlet-list construction.
+    \end{itemize}
+
+    \item AutoPas concepts needed for this thesis
+    \begin{itemize}
+        \item Containers.
+        \item Traversals.
+        \item Functors.
+        \item Data layouts.
+        \item Only enough detail to understand the modified Verlet-list path.
+    \end{itemize}
+
+    \item Data layouts
+    \begin{itemize}
+        \item Array of Structures
         \begin{itemize}
-            \item Particle objects stored as complete objects
-            \item Pointer-based neighbor access in the current AoS Verlet-list traversal
-            \item Current unordered-map based center-particle iteration
+            \item Particle object stores all attributes together.
+            \item Pointer-based neighbor lists.
+            \item Irregular pointer accesses during force traversal.
         \end{itemize}
-    \item Structure of Arrays
+        \item Structure of Arrays
         \begin{itemize}
-            \item Particle attributes stored in separate arrays
-            \item Overhead from translation of AoS storage to SoA structure
-            \item Advantages from force traversal because of AVX commands in Functor
+            \item Separate arrays per particle attribute.
+            \item Particle represented by common array index.
+            \item Better suited for vectorized force kernels.
+            \item Sorted SoA order can make traversal follow spatial particle order.
         \end{itemize}
     \end{itemize}
 
-\item Cache Locality
+    \item Cache locality
     \begin{itemize}
-        \item Cache hierarchy
-        \item Cache lines
-        \item Spatial locality
-        \item Temporal locality
-        \item L1, L2, and L3 misses
-        \item Memory stalls
-        \item Retired loads
+        \item Cache hierarchy.
+        \item Cache lines.
+        \item Spatial locality.
+        \item Temporal locality.
+        \item L1D, L2, and shared L3.
+        \item Cache misses and memory stalls.
+        \item Why locality is measured indirectly through hardware counters.
     \end{itemize}
 
-\item Spatial Sorting Orders (This should be the main focus)
+    \item Spatial ordering
     \begin{itemize}
-        \item Linear ordering
-        \item Morton ordering
-        \item Hilbert ordering
-        \item Expected locality properties
+        \item Linear order
+        \begin{itemize}
+            \item Simple coordinate linearization.
+            \item Low encoding overhead.
+        \end{itemize}
+        \item Morton order
+        \begin{itemize}
+            \item Bit interleaving.
+            \item Z-order curve.
+            \item Better multidimensional locality than linear order in many cases.
+        \end{itemize}
+        \item Hilbert order
+        \begin{itemize}
+            \item Space-filling curve with stronger locality properties.
+            \item Higher encoding cost.
+        \end{itemize}
+        \item Expected tradeoff between locality quality and encoding overhead.
     \end{itemize}
 \end{itemize}
-
 

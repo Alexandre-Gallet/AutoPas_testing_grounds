@@ -1,0 +1,107 @@
+\chapter{Benchmark Methodology}
+\label{ch:benchmark_methodology}
+
+\begin{itemize}
+    \item Benchmark goals
+    \begin{itemize}
+        \item Measure total runtime effect.
+        \item Separate locality benefit from sorting overhead.
+        \item Identify which sorting variants are promising.
+        \item Determine whether SoA and neighbor-list sorting make the sorted order useful.
+    \end{itemize}
+
+    \item Benchmark environment
+    \begin{itemize}
+        \item CoolMuc.
+        \item Intel Xeon Platinum 8380.
+        \item Single-thread execution.
+        \item OpenMP restricted to one thread.
+        \item VTK disabled.
+        \item Progress output disabled for benchmark runs.
+        \item Metadata recorded for reproducibility.
+    \end{itemize}
+
+    \item Benchmark scenarios
+    \begin{itemize}
+        \item Representative homogeneous grid
+        \begin{itemize}
+            \item Main scenario for comparing all variants.
+        \end{itemize}
+        \item Fixed-density increasing domain size
+        \begin{itemize}
+            \item Increase particle count while keeping local density fixed.
+            \item Tests scaling with working-set size.
+        \end{itemize}
+        \item Fixed-domain increasing density
+        \begin{itemize}
+            \item Keep physical domain size fixed.
+            \item Increase particle count by reducing spacing.
+            \item Tests effect of longer neighbor lists and higher interaction pressure.
+        \end{itemize}
+        \item AoS versus SoA variants
+        \begin{itemize}
+            \item Tests whether sorted traversal order is actually exploited.
+        \end{itemize}
+    \end{itemize}
+
+    \item Variants
+    \begin{itemize}
+        \item No-sorting baseline.
+        \item Cell linear, Morton, Hilbert.
+        \item Block linear, Morton, Hilbert.
+        \item Particle linear, Morton, Hilbert.
+        \item Additional SoA and neighbor-list sorting configurations if benchmarked.
+    \end{itemize}
+
+    \item Runtime measurement
+    \begin{itemize}
+        \item Repeated simulation runs.
+        \item Mean runtime.
+        \item Minimum and maximum runtime.
+        \item Standard deviation.
+        \item Speedup relative to no sorting.
+    \end{itemize}
+
+    \item Runtime decomposition
+    \begin{itemize}
+        \item VTune Hotspots top-down reports.
+        \item Force traversal.
+        \item Neighbor-list construction.
+        \item Sorting and key generation.
+        \item Reference rebuild / container update.
+        \item Other runtime.
+        \item Used to decide whether speedups come from the intended phase.
+    \end{itemize}
+
+    \item LIKWID measurements
+    \begin{itemize}
+        \item \texttt{L2CACHE}
+        \begin{itemize}
+            \item L2 miss ratio.
+            \item L2 miss rate.
+            \item Primary cache-locality metric.
+        \end{itemize}
+        \item \texttt{CYCLE\_STALLS}
+        \begin{itemize}
+            \item L1D miss stall rate.
+            \item L2 miss stall rate.
+            \item Memory-load stall rate.
+            \item Shows whether cache misses affect execution.
+        \end{itemize}
+        \item \texttt{L3}
+        \begin{itemize}
+            \item L3 data volume.
+            \item L3 bandwidth.
+            \item Supporting shared-cache traffic metric.
+        \end{itemize}
+    \end{itemize}
+
+    \item Metric caveats
+    \begin{itemize}
+        \item No direct reliable L3 miss ratio available.
+        \item L3 is shared and can be affected by other jobs.
+        \item LIKWID measurements are whole-run, not function-region measurements.
+        \item Since force traversal dominates runtime, whole-run locality metrics are still informative.
+        \item Region-specific LIKWID markers are future work.
+    \end{itemize}
+\end{itemize}

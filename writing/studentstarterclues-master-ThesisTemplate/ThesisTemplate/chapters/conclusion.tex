@@ -2,15 +2,32 @@
 \label{ch:conclusion}
 
 \begin{itemize}
-    \item Conclusions from this thesis
+    \item Summary
     \begin{itemize}
-        \item Locality works as expected, confirming original research question
-        \item Memory bottle neck arguably more important than compute bound confirmed
-    \item Future Work
+        \item Global sorting for \texttt{VerletListsReferences} was implemented.
+        \item Nine spatial sorting variants were evaluated.
+        \item Sorted SoA traversal and neighbor-list sorting were added to make order visible to traversal.
+        \item Correctness was validated against reference calculations.
+        \item Benchmarks quantified runtime, overhead, and locality proxies.
     \end{itemize}
-        \item block, cell and patilce resolution and the different sorting orders provide opportunity for autotuning
-        \item openMP and Threading for parallelization, especially cut to Size of L3 cache to attempt to move the memory bound from L3 to L2
-        \item Newton3 issue resolvement as this would reduce force traversal computation by half
+
+    \item Final answer
     \begin{itemize}
+        \item State whether sorting improved locality.
+        \item State whether sorting improved runtime.
+        \item State which variant is most promising.
+        \item State where overhead prevented gains.
+    \end{itemize}
+
+    \item Future work
+    \begin{itemize}
+        \item Cached sorting keys.
+        \item Radix sort for integer keys.
+        \item Faster Hilbert encoding.
+        \item Parallel sorting.
+        \item LIKWID marker instrumentation for force traversal and sorting phases.
+        \item Autotuning sorting resolution/order.
+        \item Further investigation of multi-threaded behavior.
+        \item Newton3 support and interaction with sorted traversal.
     \end{itemize}
 \end{itemize}

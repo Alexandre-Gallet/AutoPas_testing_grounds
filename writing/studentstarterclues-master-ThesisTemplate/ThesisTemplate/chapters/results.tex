@@ -1,0 +1,88 @@
+\chapter{Results}
+\label{ch:results}
+
+\begin{itemize}
+    \item Representative scenario: AoS baseline with sorting
+    \begin{itemize}
+        \item Runtime by variant.
+        \item Speedup by variant.
+        \item Runtime decomposition by variant.
+        \item L2 miss ratio / miss rate by variant.
+        \item Stall rates by variant.
+        \item L3 data volume / bandwidth by variant.
+        \item Identify whether sorting improves locality.
+        \item Identify whether locality improvement translates into runtime improvement.
+    \end{itemize}
+
+    \item Sorting resolution comparison
+    \begin{itemize}
+        \item Cell resolution
+        \begin{itemize}
+            \item Expected low overhead.
+            \item Coarse locality improvement.
+            \item Likely strongest practical baseline.
+        \end{itemize}
+        \item Block resolution
+        \begin{itemize}
+            \item Expected lower overhead than particle resolution.
+            \item May preserve larger spatial chunks.
+            \item Interpret together with block size.
+        \end{itemize}
+        \item Particle resolution
+        \begin{itemize}
+            \item Expected best spatial order.
+            \item Highest overhead.
+            \item Runtime may be dominated by key generation and sorting.
+        \end{itemize}
+    \end{itemize}
+
+    \item Sorting order comparison
+    \begin{itemize}
+        \item Linear
+        \begin{itemize}
+            \item Lowest overhead.
+            \item If it wins, overhead dominates over sophisticated locality.
+        \end{itemize}
+        \item Morton
+        \begin{itemize}
+            \item Middle ground between locality and overhead.
+        \end{itemize}
+        \item Hilbert
+        \begin{itemize}
+            \item Strong locality expectation.
+            \item Must justify overhead through measured gains.
+        \end{itemize}
+    \end{itemize}
+
+    \item SoA-based traversal results
+    \begin{itemize}
+        \item Compare AoS and SoA configurations.
+        \item Determine whether sorted SoA order improves force traversal.
+        \item Check whether SoA overhead is offset by traversal improvements.
+        \item Interpret runtime decomposition carefully.
+    \end{itemize}
+
+    \item Neighbor-list sorting results
+    \begin{itemize}
+        \item Compare with and without neighbor-list sorting.
+        \item Determine whether neighbor access order improves.
+        \item Check whether rebuild overhead outweighs traversal benefit.
+    \end{itemize}
+
+    \item Scaling with particle count
+    \begin{itemize}
+        \item Fixed-density increasing domain size.
+        \item Runtime scaling.
+        \item Speedup scaling.
+        \item Locality metric scaling.
+        \item Determine whether sorting becomes more useful for larger working sets.
+    \end{itemize}
+
+    \item Scaling with density
+    \begin{itemize}
+        \item Fixed-domain increasing density.
+        \item Longer neighbor lists.
+        \item More force traversal pressure.
+        \item Determine whether locality effects become stronger with denser configurations.
+    \end{itemize}
+\end{itemize}

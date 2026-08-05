@@ -1,0 +1,53 @@
+\chapter{Baseline Implementation in AutoPas}
+\label{ch:baseline_implementation}
+
+\begin{itemize}
+    \item Focus on \texttt{VerletListsReferences}
+    \begin{itemize}
+        \item Standard linked cells are only mentioned briefly as contrast.
+        \item Standard linked cells store particles in cell-local vectors.
+        \item \texttt{LinkedCellsReferences} stores particles in a global particle vector.
+        \item Cells store references into this global vector.
+        \item Global vector order can therefore be changed explicitly.
+    \end{itemize}
+
+    \item Reference storage model
+    \begin{itemize}
+        \item Global particle vector owns particles.
+        \item Reference cells store particle pointers.
+        \item Moving or sorting particles invalidates references.
+        \item Reference cells must be rebuilt after global sorting.
+    \end{itemize}
+
+    \item Verlet-list lifecycle
+    \begin{itemize}
+        \item Particles move every iteration.
+        \item Verlet lists are reused for several iterations.
+        \item Container update occurs when lists are rebuilt.
+        \item Particle migration and reference updates happen during the rebuild/update path.
+        \item Sorting can be inserted after migration and before neighbor-list construction.
+    \end{itemize}
+
+    \item Neighbor-list construction
+    \begin{itemize}
+        \item Linked-cell traversal finds candidate pairs within the Verlet radius.
+        \item AoS neighbor lists store particle pointers.
+        \item SoA neighbor lists translate pointers to indices.
+        \item Neighbor-list construction cost occurs at rebuilds.
+    \end{itemize}
+
+    \item Force traversal
+    \begin{itemize}
+        \item AoS traversal follows pointer-based neighbor-list structure.
+        \item SoA traversal iterates over global SoA indices.
+        \item Force traversal dominates runtime for large homogeneous scenarios.
+        \item Traversal order determines whether sorted particle storage can affect memory access order.
+    \end{itemize}
+
+    \item Baseline locality problem
+    \begin{itemize}
+        \item Spatially nearby particles are not guaranteed to be nearby in memory.
+        \item Neighbor-list traversal causes indirect particle accesses.
+        \item Sorting is useful only if the traversal path actually observes the sorted order.
+    \end{itemize}
+\end{itemize}

@@ -1,12 +1,62 @@
 \chapter{Introduction}
-\label{ch:introudction}
+\label{ch:introduction}
+
+Molecular dynamics simulations are high performance computing problems in which a time step iterates forward through time and the main compute kernal
+comes from forces being calculated between all particles in every time step.
+Obviously calculating forces between all particles would quickly exceed the realm of what is possible for any decently sized simulation.
+Consequently, a method is needed that preserves correctness but reduces the amount of total computations.
+The AutoPas library implements several solutions to making molecular dynamics simulations computable within reasonable time and on of these are Verlet Lists.
+The nature of verlet lists greatly reduces the amount of arithmatic work required, however they do not guarantee that particles that are close in the simulation domain are also close in memory.
+Global particle sorting may improve locality by aligning memory order and spatial proximity but also introduces overhead.
+
+This bachelor thesis attempts to answer whether global spatial particle ordering can improve memory locality and whether this locality translates into runtime gains that offset the sorting overhead.
+Furthermore, it analyzes the effects of different sorting resolutions and ordering strategies on a range of simulations with different compute loads.
+
+
+
 
 \begin{itemize}
-    \item AutoPas as an autotuning particle simulation library
-    \item Need for performance in MD Simulations
-    \item Verlet-lists based simulations which reduce unnecessary pair checks
-    \item Existing implementation benchmark (ideally benchmark showing memory bound e.g. by DRAM bound)
-    \item Can global spatial particle ordering improve memory locality and runtime of Verlet-list based molecular dynamics simulations in AutoPas?
-    \item Can it improve runtime beyond overhead of introduced sorting
-\end{itemize}
+    \item Motivation
+    \begin{itemize}
+        \item Molecular dynamics simulations repeatedly evaluate forces between many particles.
+        \item Verlet lists reduce unnecessary pair checks but still require many particle and neighbor accesses.
+        \item Runtime can be limited by memory access behavior, not only by arithmetic work.
+        \item Spatial particle ordering is a possible way to improve cache locality in Verlet-list traversal.
+    \end{itemize}
 
+    \item Problem statement
+    \begin{itemize}
+        \item Existing Verlet-list traversal accesses particles indirectly through neighbor lists.
+        \item Spatially close particles can still be far apart in memory.
+        \item Global particle sorting may improve locality by aligning memory order and spatial proximity.
+        \item Sorting also introduces overhead through key generation, sorting, reference rebuilds, and neighbor-list rebuilds.
+        \item The central tradeoff is locality benefit versus sorting overhead.
+    \end{itemize}
+
+    \item Research questions
+    \begin{itemize}
+        \item Can global spatial particle ordering improve memory locality and runtime of Verlet-list based molecular dynamics simulations in AutoPas?
+        \item Under which sorting resolutions and ordering strategies does the benefit outweigh the overhead?
+    \end{itemize}
+
+    \item Scope of this work
+    \begin{itemize}
+        \item Focus on \texttt{VerletListsReferences}.
+        \item Single-site Lennard-Jones simulations.
+        \item Single-thread benchmark runs.
+        \item Sorting resolutions: cell, block, and particle.
+        \item Sorting orders: linear, Morton, and Hilbert.
+        \item Evaluation of AoS, sorted SoA traversal, and neighbor-list sorting variants.
+    \end{itemize}
+
+    \item Thesis structure
+    \begin{itemize}
+        \item Background.
+        \item Baseline implementation in AutoPas.
+        \item Spatial sorting implementation.
+        \item Benchmark methodology.
+        \item Results.
+        \item Discussion.
+        \item Conclusion.
+    \end{itemize}
+\end{itemize}
