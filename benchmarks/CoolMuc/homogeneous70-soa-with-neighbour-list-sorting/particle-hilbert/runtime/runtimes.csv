@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,91.947,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/particle-hilbert/runtime/run_1.out
+2,91.876,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/particle-hilbert/runtime/run_2.out
+3,91.697,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/particle-hilbert/runtime/run_3.out

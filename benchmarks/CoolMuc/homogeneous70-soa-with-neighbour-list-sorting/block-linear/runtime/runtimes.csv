@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,57.282,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/block-linear/runtime/run_1.out
+2,57.169,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/block-linear/runtime/run_2.out
+3,57.214,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/block-linear/runtime/run_3.out

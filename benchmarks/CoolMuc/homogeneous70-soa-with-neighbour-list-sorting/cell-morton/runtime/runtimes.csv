@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,57.628,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/cell-morton/runtime/run_1.out
+2,58.068,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/cell-morton/runtime/run_2.out
+3,58.195,benchmarks/CoolMuc/homogeneous70-soa-with-neighbour-list-sorting/cell-morton/runtime/run_3.out
