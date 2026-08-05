@@ -1,2 +1,0 @@
-run_id,wall_clock_s,output_file
-1,12.986,benchmarks/CoolMuc/homogeneous40/cell-morton/runtime/run_1.out
