@@ -1,0 +1,24 @@
+Group 1: L2CACHE
++-----------------------+---------+---------------+
+|         Event         | Counter |  HWThread 76  |
++-----------------------+---------+---------------+
+|   INSTR_RETIRED_ANY   |  FIXC0  |  456933626470 |
+| CPU_CLK_UNHALTED_CORE |  FIXC1  |  263831668884 |
+|  CPU_CLK_UNHALTED_REF |  FIXC2  |  263831429100 |
+|     TOPDOWN_SLOTS     |  FIXC3  | 1319143893930 |
+| L2_TRANS_ALL_REQUESTS |   PMC0  |   44996307095 |
+|     L2_RQSTS_MISS     |   PMC1  |    1793460497 |
++-----------------------+---------+---------------+
+
++----------------------+-------------+
+|        Metric        | HWThread 76 |
++----------------------+-------------+
+|  Runtime (RDTSC) [s] |    115.9953 |
+| Runtime unhalted [s] |    114.9802 |
+|      Clock [MHz]     |   2294.5848 |
+|          CPI         |      0.5774 |
+|    L2 request rate   |      0.0985 |
+|     L2 miss rate     |      0.0039 |
+|     L2 miss ratio    |      0.0399 |
++----------------------+-------------+
+

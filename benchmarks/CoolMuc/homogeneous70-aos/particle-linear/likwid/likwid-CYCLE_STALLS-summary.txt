@@ -1,0 +1,31 @@
+Group 1: CYCLE_STALLS
++--------------------------------+---------+--------------+
+|              Event             | Counter |  HWThread 76 |
++--------------------------------+---------+--------------+
+|        INSTR_RETIRED_ANY       |  FIXC0  | 323657556830 |
+|      CPU_CLK_UNHALTED_CORE     |  FIXC1  | 192839808680 |
+|      CPU_CLK_UNHALTED_REF      |  FIXC2  | 192839803164 |
+|          TOPDOWN_SLOTS         |  FIXC3  | 964058509885 |
+|  CYCLE_ACTIVITY_STALLS_L2_MISS |   PMC0  |  35138139892 |
+|  CYCLE_ACTIVITY_STALLS_MEM_ANY |   PMC1  |  42470719944 |
+| CYCLE_ACTIVITY_STALLS_L1D_MISS |   PMC2  |  41253998695 |
+|   CYCLE_ACTIVITY_STALLS_TOTAL  |   PMC3  |  50164976085 |
++--------------------------------+---------+--------------+
+
++----------------------------------------+-------------+
+|                 Metric                 | HWThread 76 |
++----------------------------------------+-------------+
+|           Runtime (RDTSC) [s]          |     85.0665 |
+|          Runtime unhalted [s]          |     84.0414 |
+|               Clock [MHz]              |   2294.5815 |
+|                   CPI                  |      0.5958 |
+|         Total execution stalls         | 50164976085 |
+|     Stalls caused by L1D misses [%]    |     82.2367 |
+|     Stalls caused by L2 misses [%]     |     70.0452 |
+|    Stalls caused by memory loads [%]   |     84.6621 |
+|        Execution stall rate [%]        |     26.0138 |
+|  Stalls caused by L1D misses rate [%]  |     21.3929 |
+|   Stalls caused by L2 misses rate [%]  |     18.2214 |
+| Stalls caused by memory loads rate [%] |     22.0238 |
++----------------------------------------+-------------+
+
