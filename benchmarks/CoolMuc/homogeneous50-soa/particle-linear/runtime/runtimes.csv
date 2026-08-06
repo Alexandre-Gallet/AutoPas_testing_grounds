@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,17.185,benchmarks/CoolMuc/homogeneous50-soa/particle-linear/runtime/run_1.out
+2,17.212,benchmarks/CoolMuc/homogeneous50-soa/particle-linear/runtime/run_2.out
+3,17.201,benchmarks/CoolMuc/homogeneous50-soa/particle-linear/runtime/run_3.out

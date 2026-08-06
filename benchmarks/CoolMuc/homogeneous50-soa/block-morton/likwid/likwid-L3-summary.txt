@@ -1,0 +1,33 @@
+Group 1: L3
++-------------------------+---------+--------------+
+|          Event          | Counter |  HWThread 78 |
++-------------------------+---------+--------------+
+|    INSTR_RETIRED_ANY    |  FIXC0  |  59672173274 |
+|  CPU_CLK_UNHALTED_CORE  |  FIXC1  |  43468557259 |
+|   CPU_CLK_UNHALTED_REF  |  FIXC2  |  43468539868 |
+|      TOPDOWN_SLOTS      |  FIXC3  | 217220261810 |
+|     L2_LINES_IN_ALL     |   PMC0  |    452734569 |
+|      L2_TRANS_L2_WB     |   PMC1  |    449905408 |
+|   L2_LINES_OUT_SILENT   |   PMC2  |      3465301 |
+| L2_LINES_OUT_NON_SILENT |   PMC3  |    450167105 |
++-------------------------+---------+--------------+
+
++-----------------------------------+-------------+
+|               Metric              | HWThread 78 |
++-----------------------------------+-------------+
+|        Runtime (RDTSC) [s]        |     19.2936 |
+|        Runtime unhalted [s]       |     18.9440 |
+|            Clock [MHz]            |   2294.5860 |
+|                CPI                |      0.7285 |
+|    L3 load bandwidth [MBytes/s]   |   1501.7924 |
+|    L3 load data volume [GBytes]   |     28.9750 |
+|   L3 evict bandwidth [MBytes/s]   |   1493.2758 |
+|   L3 evict data volume [GBytes]   |     28.8107 |
+| L3|MEM evict bandwidth [MBytes/s] |   1492.4077 |
+| L3|MEM evict data volume [GBytes] |     28.7939 |
+|  Dropped CLs bandwidth [MBytes/s] |     11.4950 |
+|  Dropped CLs data volume [GBytes] |      0.2218 |
+|      L3 bandwidth [MBytes/s]      |   2994.2001 |
+|      L3 data volume [GBytes]      |     57.7690 |
++-----------------------------------+-------------+
+
