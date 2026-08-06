@@ -1,0 +1,125 @@
+INFO: You are running LIKWID in a cpuset with 2 CPUs. Taking given IDs as logical ID in cpuset
+--------------------------------------------------------------------------------
+CPU name:	Intel(R) Xeon(R) Platinum 8380 CPU @ 2.30GHz
+CPU type:	Intel Icelake SP processor
+CPU clock:	2.29 GHz
+--------------------------------------------------------------------------------
+WARNING: Simulation box increased due to particles being too close to the boundaries.
+# Running single-site MD simulation.
+
+container                        :  [VerletListsReferences]
+verlet-rebuild-frequency         :  10
+verlet-skin-radius               :  1
+verlet-particle-sorting-enabled  :  true
+verlet-neighbor-list-sorting-enabled:  false
+verlet-particle-sorting-resolution:  particle
+verlet-particle-sorting-order    :  hilbert
+verlet-particle-sorting-block-size:  [4, 4, 4]
+tuning-strategies                :  []
+tuning-metric                    :  time
+tuning-interval                  :  2500
+tuning-samples                   :  3
+early-stopping-factor            :  inf
+use-LOESS-smoothening            :  false
+PairwiseInteraction:             
+  functor                        :  Lennard-Jones (12-6) AVX intrinsics
+  traversal                      :  [vl_list_iteration]
+  data-layout                    :  [SoA]
+  newton3                        :  [disabled]
+vectorization-pattern            :  [1xVectorLength, 2xVectorLengthDiv2, VectorLengthDiv2x2, VectorLengthx1]
+cutoff                           :  3
+box-min                          :  [-0.6, -0.6, -0.6]
+box-max                          :  [95.4, 95.4, 95.4]
+cell-size                        :  [1]
+deltaT                           :  0.0005
+pause-simulation-during-tuning   :  false
+sorting-threshold                :  8
+iterations                       :  50
+boundary-type                    :  [reflective, reflective, reflective]
+Sites:                           
+  0:
+    epsilon                      :  1
+    sigma                        :  1
+    nu                           :  0
+    mass                         :  1
+Objects:                         
+  CubeGrid:
+    0:  
+      particles-per-dimension    :  [80, 80, 80]
+      particle-spacing           :  1.2
+      bottomLeftCorner           :  [0, 0, 0]
+      velocity                   :  [0, 0, 0]
+      particle-type-id           :  0
+use-tuning-logger                :  false
+output-suffix                    :  
+log-level                        :  warning
+no-end-config                    :  true
+no-progress-bar                  :  true
+load-balancer                    :  InvertedPressure
+load-balancing-interval          :  100
+subdivide-dimension              :  [true, true, true]
+energy-sensor                    :  likwid
+
+
+Using 1 Threads
+MPI is disabled.
+Number of particles at initialization on rank 0: 512000
+Number of particles at initialization globally : 512000
+
+
+Total number of particles at the end of Simulation: 512000
+Owned: 512000
+Halo : 0
+Measurements:
+Total accumulated                  : 120089179046 ns (120.089s)
+  Initialization                   :    171752896 ns (  0.172s) =  0.143%
+  Simulate                         : 119917424590 ns (119.917s) = 99.857%
+    PositionUpdate                 :   1384813589 ns (  1.385s) =  1.155%
+    UpdateContainer                :  36617612601 ns ( 36.618s) = 30.536%
+    Boundaries                     :      3464776 ns (  0.003s) =  0.003%
+      HaloParticleExchange         :      3427186 ns (  0.003s) =  0.782%
+      ReflectParticlesAtBoundaries :    434642572 ns (  0.435s) = 99.209%
+      MigratingParticleExchange    :        37590 ns (  0.000s) =  0.009%
+    ForceUpdateTotal               :  80229498573 ns ( 80.229s) = 66.904%
+      ForceUpdateNonTuning         :  80229409107 ns ( 80.229s) =100.000%
+    VelocityUpdate                 :   1246829877 ns (  1.247s) =  1.040%
+    LoadBalancing                  :       196669 ns (  0.000s) =  0.000%
+  One iteration                  :   2398348491 ns (  2.398s) =  1.997%
+Total wall-clock time              : 120089179046 ns (120.089s) =100.000%
+
+Tuning iterations                  : 0 / 50 = 0%
+MFUPs/sec                          : 0.319085
+Mean Rebuild Frequency               : 10
+Total Energy Consumed (in Joules)    : 0
+--------------------------------------------------------------------------------
+Group 1: CYCLE_STALLS
++--------------------------------+---------+---------------+
+|              Event             | Counter |  HWThread 78  |
++--------------------------------+---------+---------------+
+|        INSTR_RETIRED_ANY       |  FIXC0  |  410281644222 |
+|      CPU_CLK_UNHALTED_CORE     |  FIXC1  |  271017429541 |
+|      CPU_CLK_UNHALTED_REF      |  FIXC2  |  271017482584 |
+|          TOPDOWN_SLOTS         |  FIXC3  | 1345624029860 |
+|  CYCLE_ACTIVITY_STALLS_L2_MISS |   PMC0  |   28479208865 |
+|  CYCLE_ACTIVITY_STALLS_MEM_ANY |   PMC1  |   71821951887 |
+| CYCLE_ACTIVITY_STALLS_L1D_MISS |   PMC2  |   34606929891 |
+|   CYCLE_ACTIVITY_STALLS_TOTAL  |   PMC3  |   82749331063 |
++--------------------------------+---------+---------------+
+
++----------------------------------------+-------------+
+|                 Metric                 | HWThread 78 |
++----------------------------------------+-------------+
+|           Runtime (RDTSC) [s]          |    120.6328 |
+|          Runtime unhalted [s]          |    118.1118 |
+|               Clock [MHz]              |   2294.5824 |
+|                   CPI                  |      0.6606 |
+|         Total execution stalls         | 82749331063 |
+|     Stalls caused by L1D misses [%]    |     41.8214 |
+|     Stalls caused by L2 misses [%]     |     34.4162 |
+|    Stalls caused by memory loads [%]   |     86.7946 |
+|        Execution stall rate [%]        |     30.5328 |
+|  Stalls caused by L1D misses rate [%]  |     12.7693 |
+|   Stalls caused by L2 misses rate [%]  |     10.5083 |
+| Stalls caused by memory loads rate [%] |     26.5009 |
++----------------------------------------+-------------+
+
