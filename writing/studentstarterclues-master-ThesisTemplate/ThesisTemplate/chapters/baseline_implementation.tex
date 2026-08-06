@@ -1,53 +1,338 @@
 \chapter{Baseline Implementation in AutoPas}
 \label{ch:baseline_implementation}
 
+\section{Purpose of This Chapter}
+\label{sec:baseline_purpose}
+
 \begin{itemize}
-    \item Focus on \texttt{VerletListsReferences}
+    \item Goal of this chapter
     \begin{itemize}
-        \item Standard linked cells are only mentioned briefly as contrast.
-        \item Standard linked cells store particles in cell-local vectors.
-        \item \texttt{LinkedCellsReferences} stores particles in a global particle vector.
-        \item Cells store references into this global vector.
-        \item Global vector order can therefore be changed explicitly.
+        \item Explain the AutoPas code path that is relevant for this thesis.
+        \item Explain why \texttt{VerletListsReferences} is the useful baseline container for global particle sorting.
+        \item Explain where reference updates, Verlet-list construction, and force traversal happen.
+        \item Explain which baseline structures can observe global particle order and which structures can hide it.
+        \item Keep general molecular dynamics, linked-cell theory, and cache theory in Chapter~\ref{ch:background}.
+        \item Keep sorting-key generation and sorting variants in Chapter~\ref{ch:sorting_implementation}.
     \end{itemize}
 
-    \item Reference storage model
+    \item Main statement to prepare
     \begin{itemize}
-        \item Global particle vector owns particles.
-        \item Reference cells store particle pointers.
-        \item Moving or sorting particles invalidates references.
-        \item Reference cells must be rebuilt after global sorting.
+        \item The sorting implementation used in this thesis requires one global particle storage order.
+        \item \texttt{LinkedCellsReferences} provides such a global storage order.
+        \item A global storage order alone is not sufficient for speedup.
+        \item The traversal must access particles in an order that reflects the sorted storage.
+    \end{itemize}
+\end{itemize}
+
+\section{\texttt{LinkedCellsReferences} Storage Model}
+\label{sec:baseline_linked_cells_references}
+
+\begin{itemize}
+    \item Main implementation files
+    \begin{itemize}
+        \item \texttt{src/autopas/containers/linkedCells/LinkedCellsReferences.h}
+        \item \texttt{src/autopas/cells/ReferenceParticleCell.h}
+        \item \texttt{src/autopas/containers/linkedCells/ParticleVector.h}
     \end{itemize}
 
-    \item Verlet-list lifecycle
+    \item Contrast to standard linked cells
+    \begin{itemize}
+        \item Standard linked cells store particles inside cell-local particle containers.
+        \item Particles in one cell may be contiguous.
+        \item Particles in neighboring cells are not guaranteed to be contiguous globally.
+        \item Reordering inside one cell does not create one spatial order over all particles.
+        \item This limits standard linked cells for global particle ordering.
+    \end{itemize}
+
+    \item \texttt{LinkedCellsReferences} storage idea
+    \begin{itemize}
+        \item Actual particles stored in one global \texttt{ParticleVector}.
+        \item Cell type is \texttt{ReferenceParticleCell<Particle\_T>}.
+        \item Reference cells do not own particles.
+        \item Reference cells store \texttt{Particle\_T*} pointers into the global vector.
+        \item Cell decomposition still exists, but ownership is separated from cell membership.
+    \end{itemize}
+
+    \item Exact implementation facts to use in prose
+    \begin{itemize}
+        \item \texttt{LinkedCellsReferences} derives from \texttt{CellBasedParticleContainer<ReferenceParticleCell<Particle\_T>>}.
+        \item \texttt{using ParticleCellType = ReferenceParticleCell<Particle\_T>}.
+        \item Particle insertion appends to \texttt{\_particleList}.
+        \item Cell membership is restored by inserting particle addresses into reference cells.
+        \item \texttt{updateDirtyParticleReferences()} maps particles from \texttt{\_particleList} to containing cells.
+    \end{itemize}
+
+    \item Why this matters for global sorting
+    \begin{itemize}
+        \item The global vector defines one physical order for all particles.
+        \item A spatial sort can reorder this one vector.
+        \item This can make particles from neighboring linked cells potentially closer in memory.
+        \item After sorting, reference cells can be rebuilt to point to the new storage locations.
+        \item This makes \texttt{LinkedCellsReferences} the baseline backend for this thesis.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/baseline_storage_model.pdf}
+    \caption{Storage model of \texttt{LinkedCellsReferences}. The global \texttt{ParticleVector} owns the particle objects, while \texttt{ReferenceParticleCell} instances store references into this vector.}
+    \label{fig:baseline_storage_model}
+\end{figure}
+
+\section{Reference Validity and Dirty Rebuilds}
+\label{sec:baseline_reference_rebuilds}
+
+\begin{itemize}
+    \item Core correctness issue
+    \begin{itemize}
+        \item Reference cells store raw particle pointers.
+        \item Moving particles between cells changes which cells should contain their references.
+        \item Sorting the underlying vector can invalidate existing pointers because particle objects may move in memory.
+        \item Even if a pointer remains valid, the reference can become stale if it is stored in the wrong cell.
+        \item Therefore references must be updated after changes to particle storage or cell membership.
+    \end{itemize}
+
+    \item Dirty state idea
+    \begin{itemize}
+        \item \texttt{ParticleVector} tracks whether cell references are dirty.
+        \item Dirty state avoids rebuilding everything after every small append.
+        \item \texttt{\_dirtyIndex} marks the first particle whose reference must be updated.
+        \item \texttt{\_dirtyIndex = 0} means full reference rebuild.
+        \item Full rebuild means clearing all reference cells and reinserting references for all non-dummy particles.
+    \end{itemize}
+
+    \item \texttt{updateDirtyParticleReferences()} behavior
+    \begin{itemize}
+        \item Check \texttt{\_particleList.isDirty()}.
+        \item If \texttt{\_particleList.needsRebuild()}, clear every cell.
+        \item Iterate from \texttt{beginDirty()} to \texttt{endDirty()}.
+        \item Skip dummy particles.
+        \item Find containing cell with \texttt{\_cellBlock.getContainingCell(it->getR())}.
+        \item Insert pointer with \texttt{cell.addParticleReference(address)}.
+        \item Mark particle list clean afterwards.
+    \end{itemize}
+
+    \item Relevance to sorting
+    \begin{itemize}
+        \item Sorting changes global particle order.
+        \item Existing \texttt{ReferenceParticleCell} pointer vectors cannot be assumed valid after sorting.
+        \item Sorting must be coupled to a full reference rebuild.
+        \item The rebuild is required for correctness, not only performance.
+        \item Rebuild cost later contributes to sorting/update overhead in the benchmarks.
+    \end{itemize}
+\end{itemize}
+
+\section{Verlet-List Container Around the References Backend}
+\label{sec:baseline_verletlists_references}
+
+\begin{itemize}
+    \item Main implementation files
+    \begin{itemize}
+        \item \texttt{src/autopas/containers/verletListsCellBased/verletLists/VerletLists.h}
+        \item \texttt{src/autopas/containers/verletListsCellBased/VerletListsLinkedReferencesBase.h}
+        \item \texttt{src/autopas/LogicHandler.h}
+    \end{itemize}
+
+    \item Container composition
+    \begin{itemize}
+        \item \texttt{VerletLists} implements Verlet-list based interaction handling.
+        \item It is instantiated with a linked-cell backend.
+        \item Relevant backend for this thesis: \texttt{VerletListsLinkedReferencesBase}.
+        \item This combines Verlet lists with \texttt{LinkedCellsReferences} storage.
+        \item Linked cells provide spatial cell decomposition for neighbor-list construction.
+        \item Verlet lists store the actual interaction neighborhood used by force traversal.
+    \end{itemize}
+
+    \item Exact implementation facts to use in prose
+    \begin{itemize}
+        \item \texttt{VerletLists::computeInteractions()} casts the selected traversal to \texttt{VLTraversalInterface}.
+        \item It passes cells and the Verlet neighbor-list structures to the traversal.
+        \item In the current thesis branch this interface is extended with an optional SoA particle order; that extension belongs to the later sorted-SoA implementation, not to the original baseline idea.
+        \item It then calls \texttt{initTraversal()}, \texttt{traverseParticles()}, and \texttt{endTraversal()}.
+        \item \texttt{LogicHandler} triggers \texttt{rebuildNeighborLists()} when neighbor lists need to be rebuilt.
+    \end{itemize}
+
+    \item Responsibility split
+    \begin{itemize}
+        \item \texttt{LinkedCellsReferences}: global particle ownership and cell references.
+        \item \texttt{VerletLists}: AoS and SoA Verlet neighbor-list structures.
+        \item Traversal: iteration order over the selected neighbor-list representation.
+        \item Functor: actual pairwise force calculation.
+    \end{itemize}
+\end{itemize}
+
+\section{Verlet-List Lifecycle}
+\label{sec:baseline_verlet_lifecycle}
+
+\begin{itemize}
+    \item Simulation-level view
     \begin{itemize}
         \item Particles move every iteration.
         \item Verlet lists are reused for several iterations.
-        \item Container update occurs when lists are rebuilt.
-        \item Particle migration and reference updates happen during the rebuild/update path.
-        \item Sorting can be inserted after migration and before neighbor-list construction.
+        \item The Verlet skin permits reuse between rebuilds.
+        \item When the list becomes invalid, the container update and neighbor-list rebuild path is executed.
+        \item This rebuild path is the natural insertion point for sorting because dependent structures are refreshed there anyway.
     \end{itemize}
 
-    \item Neighbor-list construction
+    \item Rebuild path in the relevant code
     \begin{itemize}
-        \item Linked-cell traversal finds candidate pairs within the Verlet radius.
-        \item AoS neighbor lists store particle pointers.
-        \item SoA neighbor lists translate pointers to indices.
-        \item Neighbor-list construction cost occurs at rebuilds.
+        \item Container update handles particle migration and reference maintenance.
+        \item \texttt{LinkedCellsReferences::updateDirtyParticleReferences()} refreshes cell references.
+        \item \texttt{VerletLists::rebuildNeighborLists()} rebuilds AoS neighbor lists first.
+        \item If the force traversal uses SoA, SoA neighbor index lists are generated afterwards.
+        \item After this, the neighbor list is marked valid.
     \end{itemize}
 
-    \item Force traversal
+    \item Why sorting belongs in this path
     \begin{itemize}
-        \item AoS traversal follows pointer-based neighbor-list structure.
-        \item SoA traversal iterates over global SoA indices.
-        \item Force traversal dominates runtime for large homogeneous scenarios.
-        \item Traversal order determines whether sorted particle storage can affect memory access order.
+        \item Sorting before every force traversal would add recurring overhead and would not match the reuse pattern of Verlet lists.
+        \item Sorting during rebuild lets the cost be amortized over the next force iterations.
+        \item The rebuild path already has to reconstruct data structures that depend on particle references.
+        \item Correctness requirement for the sorting implementation: sort before neighbor-list construction, not after.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/baseline_verlet_lifecycle.pdf}
+    \caption{Simplified lifecycle of the relevant Verlet-list path. Verlet lists are reused between rebuilds; reference updates and neighbor-list construction happen during the rebuild/update path.}
+    \label{fig:baseline_verlet_lifecycle}
+\end{figure}
+
+\section{Neighbor-List Construction}
+\label{sec:baseline_neighbor_list_construction}
+
+\begin{itemize}
+    \item Main implementation files
+    \begin{itemize}
+        \item \texttt{src/autopas/containers/verletListsCellBased/verletLists/VerletLists.h}
+        \item \texttt{src/autopas/containers/linkedCells/traversals/LCC08Traversal.h}
+        \item \texttt{src/autopas/containers/verletListsCellBased/verletLists/VerletListHelpers.h}
     \end{itemize}
 
-    \item Baseline locality problem
+    \item AoS neighbor-list generation
+    \begin{itemize}
+        \item \texttt{VerletLists::rebuildNeighborLists()} calls \texttt{updateVerletListsAoS()}.
+        \item \texttt{updateVerletListsAoS()} first calls \texttt{generateAoSNeighborLists()}.
+        \item \texttt{generateAoSNeighborLists()} creates one map entry for every owned, halo, or dummy particle.
+        \item AoS neighbor-list structure: center-particle pointer mapped to vector of neighbor-particle pointers.
+        \item \texttt{VerletListGeneratorFunctor} fills these pointer vectors.
+        \item \texttt{LCC08Traversal} traverses linked cells and applies the generator functor.
+        \item Candidate pairs are filtered by the Verlet radius, i.e. cutoff plus skin.
+    \end{itemize}
+
+    \item Why AoS lists are built first
+    \begin{itemize}
+        \item The code builds pointer-based AoS lists even if the selected force traversal uses SoA.
+        \item This gives one common construction path.
+        \item SoA neighbor lists are derived from the AoS pointer lists.
+        \item SoA construction therefore still depends on the AoS pointer list as intermediate representation.
+    \end{itemize}
+
+    \item SoA neighbor-list generation
+    \begin{itemize}
+        \item Only performed if the selected traversal uses \texttt{DataLayoutOption::soa}.
+        \item \texttt{generateSoAListFromAoSVerletLists()} creates a pointer-to-index map.
+        \item Map meaning: \texttt{Particle\_T* -> SoA index}.
+        \item For every AoS center pointer, find its SoA index.
+        \item For every AoS neighbor pointer, translate it to a neighbor SoA index.
+        \item Result: \texttt{\_soaNeighborLists[i]} contains integer neighbor indices for the center particle at SoA index \texttt{i}.
+    \end{itemize}
+
+    \item Cost relevance
+    \begin{itemize}
+        \item Neighbor-list construction cost is paid at rebuilds.
+        \item Force traversal cost is paid every iteration.
+        \item Sorting must improve repeated force traversal enough to compensate rebuild-time overhead.
+        \item This rebuild/traversal split is central for interpreting sorting performance.
+    \end{itemize}
+\end{itemize}
+
+\section{Force Traversal}
+\label{sec:baseline_force_traversal}
+
+\begin{itemize}
+    \item Main implementation file
+    \begin{itemize}
+        \item \texttt{src/autopas/containers/verletListsCellBased/verletLists/traversals/VLListIterationTraversal.h}
+    \end{itemize}
+
+    \item General structure
+    \begin{itemize}
+        \item \texttt{VLListIterationTraversal::traverseParticles()} dispatches by data layout.
+        \item \texttt{DataLayoutOption::aos}: pointer-based loop over AoS neighbor lists.
+        \item \texttt{DataLayoutOption::soa}: index-based loop over SoA neighbor lists.
+        \item Newton3 disabled case is especially relevant for the benchmark setup.
+    \end{itemize}
+
+    \item AoS traversal
+    \begin{itemize}
+        \item For Newton3 disabled, traversal iterates over buckets of the AoS neighbor-list map.
+        \item Center particle access: \texttt{ParticleType \&particle = *(bucketIter->first)}.
+        \item Neighbor access: iterate over \texttt{bucketIter->second}, then dereference each neighbor pointer.
+        \item Pair computation: \texttt{\_functor.AoSFunctor(particle, neighbor, false)}.
+        \item Locality consequence: map bucket order is not guaranteed to match global particle-vector order.
+        \item Therefore AoS traversal may not fully observe a globally sorted particle vector.
+    \end{itemize}
+
+    \item SoA traversal
+    \begin{itemize}
+        \item Traversal iterates over integer indices \texttt{particleIndex = 0 ... soaNeighborLists.size()-1}.
+        \item Pair computation: \texttt{\_functor.SoAFunctorVerlet(\_soa, particleIndex, soaNeighborLists[particleIndex], \_useNewton3)}.
+        \item Center-particle traversal order is the SoA index order.
+        \item In the original fallback path, the SoA buffer is loaded by concatenating cells.
+        \item In the later sorted-SoA extension, if the SoA buffer is built in sorted global particle order, the force traversal follows sorted particle order.
+        \item Neighbor access still depends on the order of indices inside each \texttt{\_soaNeighborLists[i]} vector.
+    \end{itemize}
+
+    \item Why force traversal matters
+    \begin{itemize}
+        \item Force traversal dominates runtime for sufficiently large homogeneous scenarios.
+        \item It repeatedly accesses center and neighbor particle data.
+        \item Locality improvements should primarily appear here if sorting is effective.
+        \item If traversal order ignores sorted storage order, global sorting can be hidden by the traversal data structure.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/baseline_aos_soa_traversal.pdf}
+    \caption{Traversal-order difference between AoS and SoA for \texttt{VLListIterationTraversal}. AoS follows pointer/map iteration order, while SoA follows integer index order.}
+    \label{fig:baseline_aos_soa_traversal}
+\end{figure}
+
+\section{Baseline Locality Problem}
+\label{sec:baseline_locality_problem}
+
+\begin{itemize}
+    \item Memory locality issue
     \begin{itemize}
         \item Spatially nearby particles are not guaranteed to be nearby in memory.
-        \item Neighbor-list traversal causes indirect particle accesses.
-        \item Sorting is useful only if the traversal path actually observes the sorted order.
+        \item Verlet lists reduce unnecessary pair checks, but force traversal still performs many particle and neighbor accesses.
+        \item AoS neighbor lists contain pointers, so neighbor access can be indirect and irregular.
+        \item SoA neighbor lists contain indices, but locality depends on how SoA indices are assigned.
+        \item The same physical interaction set can be visited with different memory access orders.
+    \end{itemize}
+
+    \item Why \texttt{LinkedCellsReferences} is necessary but not sufficient
+    \begin{itemize}
+        \item Necessary: one global \texttt{ParticleVector} can be sorted spatially.
+        \item Not sufficient: traversal must consume particles in a way that reflects that order.
+        \item AoS path can still be dominated by neighbor-list map and pointer order.
+        \item The original SoA path exposes its own SoA index order, which is generated from cell-based loading.
+        \item The later sorted-SoA extension can expose the sorted global order by building the SoA buffer from the sorted global vector.
+    \end{itemize}
+
+    \item Bridge to later chapters
+    \begin{itemize}
+        \item Chapter~\ref{ch:sorting_implementation}: how global spatial sorting is inserted into this rebuild path.
+        \item Chapter~\ref{ch:benchmark_methodology}: how runtime, phase decomposition, and hardware-counter proxies are measured.
+        \item Chapter~\ref{ch:results}: whether sorting benefit exceeds sorting/rebuild overhead.
+        \item Chapter~\ref{ch:discussion}: why effects differ between AoS, SoA, particle count, and sorting variants.
+    \end{itemize}
+
+    \item Summary sentence to turn into prose
+    \begin{itemize}
+        \item \texttt{VerletListsReferences} provides the storage mechanism required for global sorting, but the actual locality benefit depends on the neighbor-list and traversal path.
     \end{itemize}
 \end{itemize}
