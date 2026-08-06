@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,32.936,benchmarks/CoolMuc/homogeneous60-soa/cell-hilbert/runtime/run_1.out
+2,32.946,benchmarks/CoolMuc/homogeneous60-soa/cell-hilbert/runtime/run_2.out
+3,32.947,benchmarks/CoolMuc/homogeneous60-soa/cell-hilbert/runtime/run_3.out

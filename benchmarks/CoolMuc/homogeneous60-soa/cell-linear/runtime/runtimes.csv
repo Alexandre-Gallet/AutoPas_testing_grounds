@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,29.223,benchmarks/CoolMuc/homogeneous60-soa/cell-linear/runtime/run_1.out
+2,29.552,benchmarks/CoolMuc/homogeneous60-soa/cell-linear/runtime/run_2.out
+3,29.199,benchmarks/CoolMuc/homogeneous60-soa/cell-linear/runtime/run_3.out
