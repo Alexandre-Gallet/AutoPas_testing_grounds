@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,142.931,benchmarks/CoolMuc/homogeneous90-soa/particle-morton/runtime/run_1.out
+2,151.150,benchmarks/CoolMuc/homogeneous90-soa/particle-morton/runtime/run_2.out
+3,148.312,benchmarks/CoolMuc/homogeneous90-soa/particle-morton/runtime/run_3.out
