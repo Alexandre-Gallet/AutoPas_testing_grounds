@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,13.468,benchmarks/CoolMuc/homogeneous40-aos/no-sorting/runtime/run_1.out
+2,13.474,benchmarks/CoolMuc/homogeneous40-aos/no-sorting/runtime/run_2.out
+3,15.999,benchmarks/CoolMuc/homogeneous40-aos/no-sorting/runtime/run_3.out
