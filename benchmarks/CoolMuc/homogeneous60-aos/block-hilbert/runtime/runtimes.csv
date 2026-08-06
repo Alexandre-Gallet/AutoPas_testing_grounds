@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,53.435,benchmarks/CoolMuc/homogeneous60-aos/block-hilbert/runtime/run_1.out
+2,53.159,benchmarks/CoolMuc/homogeneous60-aos/block-hilbert/runtime/run_2.out
+3,53.185,benchmarks/CoolMuc/homogeneous60-aos/block-hilbert/runtime/run_3.out

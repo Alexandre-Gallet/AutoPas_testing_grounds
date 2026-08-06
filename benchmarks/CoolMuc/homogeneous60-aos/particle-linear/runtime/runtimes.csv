@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,51.686,benchmarks/CoolMuc/homogeneous60-aos/particle-linear/runtime/run_1.out
+2,51.747,benchmarks/CoolMuc/homogeneous60-aos/particle-linear/runtime/run_2.out
+3,51.788,benchmarks/CoolMuc/homogeneous60-aos/particle-linear/runtime/run_3.out
