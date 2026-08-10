@@ -1,0 +1,4 @@
+run_id,wall_clock_s,output_file
+1,122.760,benchmarks/CoolMuc/homogeneous80-aos/cell-linear/runtime/run_1.out
+2,125.991,benchmarks/CoolMuc/homogeneous80-aos/cell-linear/runtime/run_2.out
+3,124.685,benchmarks/CoolMuc/homogeneous80-aos/cell-linear/runtime/run_3.out
